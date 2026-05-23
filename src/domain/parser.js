@@ -9,7 +9,7 @@ export function parseFormattedRecipe(text) {
   lines.forEach(line => {
     const trimmed = line.trim();
 
-    if (trimmed.includes("料理名")) {
+    if (trimmed.startsWith("料理名")) {
       mode = "title";
       return;
     }
@@ -20,17 +20,17 @@ export function parseFormattedRecipe(text) {
       return;
     }
 
-    if (trimmed.includes("材料")) {
+    if (trimmed.startsWith("材料")) {
       mode = "ingredients";
       return;
     }
 
-    if (trimmed.includes("手順")) {
+    if (trimmed.startsWith("手順")) {
       mode = "steps";
       return;
     }
 
-    if (trimmed.includes("参考URL")) {
+    if (trimmed.startsWith("参考URL")) {
       const value = trimmed.replace(/.*参考URL[:：]?\s*/, "").trim();
       if (value) {
         recipeUrl = value;
