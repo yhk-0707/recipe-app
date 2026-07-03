@@ -13,6 +13,28 @@ const defaultRecipes = [
     { id: 3, name: "カレーライス", ingredients: ["じゃがいも", "にんじん", "玉ねぎ"] },
 ];
 
+function SearchBox({ query, onChange }) {
+    // 検索欄のコンポーネント化
+    return (
+        <input // テキスト入力欄（JSXのinput要素）
+            // value,checkedのpropsで現在のstateを渡す場合は、渡された値を更新するonChangeハンドラも渡す。
+            value={query} // 入力欄の値をqueryにバインドする。文字列props
+            onChange={e => onChange(e.target.value)} // 入力欄の値が変更されたときにqueryを更新する。
+            placeholder="材料または料理名" // 入力欄のプレースホルダーを設定する （プレースホルダ―は、入力欄が空のときに表示される薄い文字のこと）
+        />
+    );
+}
+
+function RecipeCard({ recipe }) {
+    // レシピ1件分の表示のコンポーネント化
+    return (
+        <li>
+            <strong>{recipe.name}</strong>（{recipe.ingredients.join("、")}）{/* レシピ名と材料を表示する。joinで配列を文字列に変換する。 */}
+        </li>
+    );
+}
+
+// Appコンポーネントの定義
 function App() {
     // 検索クエリの状態を管理するためにuseStateを使う
     const [query, setQuery] = useState("");
@@ -29,23 +51,22 @@ function App() {
         );
 
     // returnでUIのJSXを返す(元htmlの内容)
+    // 検索欄とレシピ表示をコンポーネントで切り出し
     return (
         <div>
             <h1>レシピ検索</h1>
-            <input // 入力欄表示のinputコンポーネント
+            <SearchBox
                 // value,checkedのpropsで現在のstateを渡す場合は、渡された値を更新するonChangeハンドラも渡す。
-                value={query} // 入力欄の値をqueryにバインドする。文字列props
-                onChange={e => setQuery(e.target.value)} // 入力欄の値が変更されたときにqueryを更新する。
-                placeholder="材料または料理名" // 入力欄のプレースホルダーを設定する （プレースホルダ―は、入力欄が空のときに表示される薄い文字のこと）
+                query={query}
+                onChange={setQuery}
             />
             {/* 検索結果の有無で表示内容を切り替える */}
             {results.length === 0
-                ? (<p>該当するレシピがありません。</p>) // 検索結果がないとき
-                : (<ul>
-                    {results.map(recipe => ( // 検索結果があるとき、results配列のリスト(li要素)を作成。
-                        <li key={recipe.id}> {/*// keyはReactがリストの要素を識別するために必要。recipe.idを使うことで一意の値を指定する。 */}
-                            <strong>{recipe.name}</strong>（{recipe.ingredients.join("、")}）{/* レシピ名と材料を表示する。joinで配列を文字列に変換する。 */}
-                        </li>
+                ? (<p>該当するレシピがありません。</p>)// 検索結果がないとき
+                : (<ul> // 順序なしリスト（ul要素）で検索結果を表示する
+                    {results.map(recipe =>  // 検索結果があるとき、results配列のリスト(li要素)を作成。
+                    (
+                        <RecipeCard key={recipe.id} recipe={recipe} /> // keyはReactがリストの要素を識別するために必要。recipe.idを使うことで一意の値を指定する。
                     ))}
                 </ul>
                 )}
