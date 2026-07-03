@@ -63,7 +63,7 @@ function App() {
             {/* 検索結果の有無で表示内容を切り替える */}
             {results.length === 0
                 ? (<p>該当するレシピがありません。</p>)// 検索結果がないとき
-                : (<ul> // 順序なしリスト（ul要素）で検索結果を表示する
+                : (<ul> {/*// 順序なしリスト（ul要素）で検索結果を表示する */}
                     {results.map(recipe =>  // 検索結果があるとき、results配列のリスト(li要素)を作成。
                     (
                         <RecipeCard key={recipe.id} recipe={recipe} /> // keyはReactがリストの要素を識別するために必要。recipe.idを使うことで一意の値を指定する。
