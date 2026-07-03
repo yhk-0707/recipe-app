@@ -35,3 +35,6 @@ coverage/
 
 # Misc
 *.tgz
+
+# Sample files
+sample.jsx
