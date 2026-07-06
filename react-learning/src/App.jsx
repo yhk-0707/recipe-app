@@ -55,11 +55,22 @@ function App() {
 
     // 
     const [newName, setNewName] = useState(""); // 新しいレシピ名の状態を管理するためにuseStateを使う
+    const [newIngredients, setNewIngredients] = useState(""); // 新しいレシピの材料入力状態を管理するためにuseStateを使う
     const addRecipe = () => { // 新しいレシピを追加する関数
-        if (newName.trim() === "") return; // 入力欄が空の場合は何もしない
-        setRecipes([...recipes, // 新しいレシピを追加するために、既存のレシピ配列に新しいレシピを追加する
-        { id: Date.now(), name: newName.trim(), ingredients: [] }]); // 新しいレシピのidはDate.now()で一意の値を生成する。nameは入力欄の値をtrim()で前後の空白を削除して設定する。ingredientsは空配列で初期化する。
+        const trimmedName = newName.trim();
+        if (trimmedName === "") return; // 入力欄が空の場合は何もしない
+
+        const ingredients = newIngredients
+            .split(",")
+            .map(ingredient => ingredient.trim())
+            .filter(Boolean);
+
+        setRecipes(prevRecipes => [
+            ...prevRecipes,
+            { id: Date.now(), name: trimmedName, ingredients } // 新しいレシピのidはDate.now()で一意の値を生成する。nameは入力欄の値をtrim()で前後の空白を削除して設定する。ingredientsはカンマ区切りの入力を配列に変換する。
+        ]);
         setNewName(""); // 入力欄をリセットする
+        setNewIngredients(""); // 材料入力欄もリセットする
     };
 
     // 検索処理 search.jsに該当
@@ -99,9 +110,13 @@ function App() {
                 value={newName} // 入力欄の値をnewNameにバインドする
                 onChange={e => setNewName(e.target.value)} // 入力欄の値が変更されたときにnewNameを更新する
                 placeholder="新しいレシピ名" /> {/* 入力欄のプレースホルダーを設定する */}
+            <input // 新しいレシピの材料入力欄
+                value={newIngredients} // 入力欄の値をnewIngredientsにバインドする
+                onChange={e => setNewIngredients(e.target.value)} // 入力欄の値が変更されたときにnewIngredientsを更新する
+                placeholder="材料をカンマ区切りで入力" /> {/* 入力欄のプレースホルダーを設定する */}
             <button
                 onClick={addRecipe} // クリックされたときにaddRecipe関数を実行する
-                disabled={newName.trim() === ""} // 入力欄が空の場合はボタンを無効化する
+                disabled={newName.trim() === ""} // レシピ名が空の場合はボタンを無効化する
             >
                 追加 {/* ボタンのラベル */}
             </button>
