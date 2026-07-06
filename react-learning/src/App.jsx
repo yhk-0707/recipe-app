@@ -6,6 +6,7 @@
 // useEffect:コンポーネントを外部システムと同期させるためのフック。「このstateが変わったら、この処理を実行して」とReactに予約しておく仕組み。
 import { useState, useEffect } from "react";
 import SearchBox from "./components/SearchBox";
+import AddRecipeForm from "./components/AddRecipeForm";
 
 // デフォルトレシピデータ recipes.jsに該当
 // js版と別に変わらない
@@ -190,20 +191,13 @@ function App() {
                 </ul>
                 )}
 
-            <input // 新しいレシピ名の入力欄
-                value={newName} // 入力欄の値をnewNameにバインドする
-                onChange={e => setNewName(e.target.value)} // 入力欄の値が変更されたときにnewNameを更新する
-                placeholder="新しいレシピ名" /> {/* 入力欄のプレースホルダーを設定する */}
-            <input // 新しいレシピの材料入力欄
-                value={newIngredients} // 入力欄の値をnewIngredientsにバインドする
-                onChange={e => setNewIngredients(e.target.value)} // 入力欄の値が変更されたときにnewIngredientsを更新する
-                placeholder="材料をカンマ区切りで入力" /> {/* 入力欄のプレースホルダーを設定する */}
-            <button
-                onClick={addRecipe} // クリックされたときにaddRecipe関数を実行する
-                disabled={newName.trim() === ""} // レシピ名が空の場合はボタンを無効化する
-            >
-                追加 {/* ボタンのラベル */}
-            </button>
+            <AddRecipeForm
+                newName={newName}
+                setNewName={setNewName}
+                newIngredients={newIngredients}
+                setNewIngredients={setNewIngredients}
+                onAdd={addRecipe}
+            />
 
         </div>
     );
