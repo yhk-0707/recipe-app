@@ -5,6 +5,7 @@
 // useState:コンポーネントの状態を管理するためのフック。「このstateの値を保持して、更新する関数を返す」とReactに予約しておく仕組み。
 // useEffect:コンポーネントを外部システムと同期させるためのフック。「このstateが変わったら、この処理を実行して」とReactに予約しておく仕組み。
 import { useState, useEffect } from "react";
+import SearchBox from "./components/SearchBox";
 
 // デフォルトレシピデータ recipes.jsに該当
 // js版と別に変わらない
@@ -13,18 +14,6 @@ const defaultRecipes = [
     { id: 2, name: "親子丼", ingredients: ["鶏肉", "卵", "玉ねぎ"] },
     { id: 3, name: "カレーライス", ingredients: ["じゃがいも", "にんじん", "玉ねぎ"] },
 ];
-
-function SearchBox({ query, onChange }) {
-    // 検索欄のコンポーネント化
-    return (
-        <input // テキスト入力欄（JSXのinput要素）
-            // value,checkedのpropsで現在のstateを渡す場合は、渡された値を更新するonChangeハンドラも渡す。
-            value={query} // 入力欄の値をqueryにバインドする。文字列props
-            onChange={e => onChange(e.target.value)} // 入力欄の値が変更されたときにqueryを更新する。
-            placeholder="材料または料理名" // 入力欄のプレースホルダーを設定する （プレースホルダ―は、入力欄が空のときに表示される薄い文字のこと）
-        />
-    );
-}
 
 // Appコンポーネントで呼び出す子コンポーネント、「RecipeCard」の定義
 function RecipeCard({
