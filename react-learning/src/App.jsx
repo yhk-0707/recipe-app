@@ -33,10 +33,8 @@ function App() {
     const [newIngredients, setNewIngredients] = useState("");
     // 編集中のレシピIDを管理するためのstate
     const [editingRecipeId, setEditingRecipeId] = useState(null);
-    // 編集中のレシピ名
-    const [editName, setEditName] = useState("");
-    // 編集中の材料入力
-    const [editIngredients, setEditIngredients] = useState("");
+    // 編集中のレシピ内容をまとめて入力するためのstate
+    const [editRecipeText, setEditRecipeText] = useState("");
 
     // recipesが変わったら自動で保存するためにuseEffectを使う
     useEffect(() => {
@@ -158,31 +156,45 @@ function App() {
     // 編集対象のレシピを選択して、編集フォームにその内容を反映する
     const startEdit = (recipe) => {
         setEditingRecipeId(recipe.id);
-        setEditName(recipe.name);
-        setEditIngredients(recipe.ingredients.join(", "));
+
+        const ingredientLines = (recipe.ingredients || []).map(item => `- ${item}`);
+        const stepLines = (recipe.steps && recipe.steps.length > 0 ? recipe.steps : [""]).map((step, index) => `${index + 1}. ${step}`);
+
+        const formattedRecipeText = [
+            "料理名",
+            recipe.name,
+            "材料",
+            ...ingredientLines,
+            "手順",
+            ...stepLines,
+            "参考URL",
+            recipe.url || ""
+        ].join("\n");
+
+        setEditRecipeText(formattedRecipeText);
     };
 
     // 編集状態をリセットして、入力欄を初期化する
     const cancelEdit = () => {
         setEditingRecipeId(null);
-        setEditName("");
-        setEditIngredients("");
+        setEditRecipeText("");
     };
 
     // 編集内容を反映して、保存後に編集状態を終了する
     const saveEdit = () => {
-        const trimmedName = editName.trim();
-        if (trimmedName === "") return;
+        const trimmedRecipeText = editRecipeText.trim();
+        if (trimmedRecipeText === "") return;
 
-        const ingredients = editIngredients
-            .split(",")
-            .map(ingredient => ingredient.trim())
-            .filter(Boolean);
+        const parsedRecipe = parseRecipeText(trimmedRecipeText, "");
+        if (!parsedRecipe) {
+            window.alert("料理名の形式が正しくありません。\n「料理名」の行の次にタイトルを入力してください。");
+            return;
+        }
 
         setRecipes(prevRecipes =>
             prevRecipes.map(recipe =>
                 recipe.id === editingRecipeId
-                    ? { ...recipe, name: trimmedName, ingredients }
+                    ? { ...recipe, ...parsedRecipe }
                     : recipe
             )
         );
@@ -198,9 +210,11 @@ function App() {
     };
 
     // 検索処理 search.jsに該当
-    const terms = query.trim().toLowerCase().split(/\s+/);
-    const results = terms.length === 0
-        ? recipes
+    const trimmedQuery = query.trim();
+    const terms = trimmedQuery.toLowerCase().split(/\s+/);
+    const hasSearchInput = trimmedQuery.length > 0;
+    const results = !hasSearchInput
+        ? []
         : recipes.filter(recipe =>
             terms.some(term =>
                 recipe.name.toLowerCase().includes(term) ||
@@ -213,7 +227,7 @@ function App() {
     return (
         <div className="app-shell">
             <header className="app-header">
-                <h1>{viewMode === "register" ? "レシピ登録" : "レシピ検索"}</h1>
+                <h1>{viewMode === "register" ? "レシピ登録" : viewMode === "registered" ? "登録済み一覧" : "レシピ検索"}</h1>
                 <div className="view-switcher">
                     <button
                         type="button"
@@ -229,6 +243,13 @@ function App() {
                     >
                         レシピ登録
                     </button>
+                    <button
+                        type="button"
+                        className={viewMode === "registered" ? "active" : ""}
+                        onClick={() => setViewMode("registered")}
+                    >
+                        登録済み一覧
+                    </button>
                 </div>
             </header>
 
@@ -239,6 +260,26 @@ function App() {
                     </p>
                     <RegisterRecipeForm onRegister={handleRegister} />
                 </>
+            ) : viewMode === "registered" ? (
+                <>
+                    <p className="intro">
+                        登録済みのレシピを一覧で確認し、内容の修正や削除ができます。
+                    </p>
+                    {recipes.length === 0 ? (
+                        <p>登録済みのレシピはありません。</p>
+                    ) : (
+                        <RecipeList
+                            recipes={recipes}
+                            editingRecipeId={editingRecipeId}
+                            editRecipeText={editRecipeText}
+                            setEditRecipeText={setEditRecipeText}
+                            onEdit={startEdit}
+                            onDelete={deleteRecipe}
+                            onSaveEdit={saveEdit}
+                            onCancelEdit={cancelEdit}
+                        />
+                    )}
+                </>
             ) : (
                 <>
                     <SearchBox
@@ -246,30 +287,22 @@ function App() {
                         onChange={setQuery}
                     />
 
-                    {results.length === 0 ? (
+                    {!hasSearchInput ? (
+                        <p>材料または料理名を入力してください。</p>
+                    ) : results.length === 0 ? (
                         <p>該当するレシピがありません。</p>
                     ) : (
-                        <RecipeList
-                            recipes={results}
-                            editingRecipeId={editingRecipeId}
-                            editName={editName}
-                            setEditName={setEditName}
-                            editIngredients={editIngredients}
-                            setEditIngredients={setEditIngredients}
-                            onEdit={startEdit}
-                            onDelete={deleteRecipe}
-                            onSaveEdit={saveEdit}
-                            onCancelEdit={cancelEdit}
-                        />
+                        <ul>
+                            {results.map(recipe => (
+                                <li key={recipe.id}>
+                                    <strong>{recipe.name}</strong>
+                                    <div>
+                                        材料: {recipe.ingredients.length > 0 ? recipe.ingredients.join("、") : "なし"}
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
                     )}
-
-                    <AddRecipeForm
-                        newName={newName}
-                        setNewName={setNewName}
-                        newIngredients={newIngredients}
-                        setNewIngredients={setNewIngredients}
-                        onAdd={addRecipe}
-                    />
                 </>
             )}
         </div>
