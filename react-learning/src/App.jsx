@@ -27,11 +27,45 @@ function SearchBox({ query, onChange }) {
     );
 }
 
-function RecipeCard({ recipe }) {
+function RecipeCard({
+    recipe,
+    onDelete,
+    onEdit,
+    isEditing,
+    editName,
+    setEditName,
+    editIngredients,
+    setEditIngredients,
+    onSaveEdit,
+    onCancelEdit
+}) {
     // レシピ1件分の表示のコンポーネント化
     return (
         <li>
-            <strong>{recipe.name}</strong>（{recipe.ingredients.join("、")}）{/* レシピ名と材料を表示する。joinで配列を文字列に変換する。 */}
+            {isEditing ? (
+                <div>
+                    <input
+                        value={editName}
+                        onChange={e => setEditName(e.target.value)}
+                        placeholder="レシピ名"
+                    />
+                    <input
+                        value={editIngredients}
+                        onChange={e => setEditIngredients(e.target.value)}
+                        placeholder="材料をカンマ区切りで入力"
+                    />
+                    <button onClick={onSaveEdit}>保存</button>
+                    <button onClick={onCancelEdit}>キャンセル</button>
+                </div>
+            ) : (
+                <div>
+                    <strong>{recipe.name}</strong>（{recipe.ingredients.join("、")}）{/* レシピ名と材料を表示する。joinで配列を文字列に変換する。 */}
+                    <div>
+                        <button onClick={() => onEdit(recipe)}>編集</button>
+                        <button onClick={() => onDelete(recipe.id)}>削除</button>
+                    </div>
+                </div>
+            )}
         </li>
     );
 }
@@ -56,6 +90,10 @@ function App() {
     // 
     const [newName, setNewName] = useState(""); // 新しいレシピ名の状態を管理するためにuseStateを使う
     const [newIngredients, setNewIngredients] = useState(""); // 新しいレシピの材料入力状態を管理するためにuseStateを使う
+    const [editingRecipeId, setEditingRecipeId] = useState(null); // 編集中のレシピIDを管理するためのstate
+    const [editName, setEditName] = useState(""); // 編集中のレシピ名
+    const [editIngredients, setEditIngredients] = useState(""); // 編集中の材料入力
+
     const addRecipe = () => { // 新しいレシピを追加する関数
         const trimmedName = newName.trim();
         if (trimmedName === "") return; // 入力欄が空の場合は何もしない
@@ -71,6 +109,44 @@ function App() {
         ]);
         setNewName(""); // 入力欄をリセットする
         setNewIngredients(""); // 材料入力欄もリセットする
+    };
+
+    const startEdit = (recipe) => {
+        setEditingRecipeId(recipe.id);
+        setEditName(recipe.name);
+        setEditIngredients(recipe.ingredients.join(", "));
+    };
+
+    const cancelEdit = () => {
+        setEditingRecipeId(null);
+        setEditName("");
+        setEditIngredients("");
+    };
+
+    const saveEdit = () => {
+        const trimmedName = editName.trim();
+        if (trimmedName === "") return;
+
+        const ingredients = editIngredients
+            .split(",")
+            .map(ingredient => ingredient.trim())
+            .filter(Boolean);
+
+        setRecipes(prevRecipes =>
+            prevRecipes.map(recipe =>
+                recipe.id === editingRecipeId
+                    ? { ...recipe, name: trimmedName, ingredients }
+                    : recipe
+            )
+        );
+        cancelEdit();
+    };
+
+    const deleteRecipe = (id) => {
+        setRecipes(prevRecipes => prevRecipes.filter(recipe => recipe.id !== id));
+        if (editingRecipeId === id) {
+            cancelEdit();
+        }
     };
 
     // 検索処理 search.jsに該当
@@ -101,7 +177,19 @@ function App() {
                 : (<ul> {/*// 順序なしリスト（ul要素）で検索結果を表示する */}
                     {results.map(recipe =>  // 検索結果があるとき、results配列のリスト(li要素)を作成。
                     (
-                        <RecipeCard key={recipe.id} recipe={recipe} /> // keyはReactがリストの要素を識別するために必要。recipe.idを使うことで一意の値を指定する。
+                        <RecipeCard
+                            key={recipe.id}
+                            recipe={recipe}
+                            onDelete={deleteRecipe}
+                            onEdit={startEdit}
+                            isEditing={editingRecipeId === recipe.id}
+                            editName={editName}
+                            setEditName={setEditName}
+                            editIngredients={editIngredients}
+                            setEditIngredients={setEditIngredients}
+                            onSaveEdit={saveEdit}
+                            onCancelEdit={cancelEdit}
+                        /> // keyはReactがリストの要素を識別するために必要。recipe.idを使うことで一意の値を指定する。
                     ))}
                 </ul>
                 )}
