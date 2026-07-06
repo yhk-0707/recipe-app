@@ -38,3 +38,6 @@ coverage/
 
 # Sample files
 sample.jsx
+
+# dist files
+dist/
