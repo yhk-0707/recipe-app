@@ -8,14 +8,7 @@ import { useState, useEffect } from "react";
 import SearchBox from "./components/SearchBox";
 import AddRecipeForm from "./components/AddRecipeForm";
 import RecipeList from "./components/RecipeList";
-
-// デフォルトレシピデータ recipes.jsに該当
-// js版と別に変わらない
-const defaultRecipes = [
-    { id: 1, name: "オムライス", ingredients: ["卵", "ご飯", "ケチャップ"] },
-    { id: 2, name: "親子丼", ingredients: ["鶏肉", "卵", "玉ねぎ"] },
-    { id: 3, name: "カレーライス", ingredients: ["じゃがいも", "にんじん", "玉ねぎ"] },
-];
+import defaultRecipes from "./data/defaultRecipes";
 
 // Appコンポーネントの定義
 function App() {
