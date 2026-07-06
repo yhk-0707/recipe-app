@@ -16,7 +16,6 @@ const defaultRecipes = [
 
 function SearchBox({ query, onChange }) {
     // 検索欄のコンポーネント化
-    // あとでモジュール化で切り出したい
     return (
         <input // テキスト入力欄（JSXのinput要素）
             // value,checkedのpropsで現在のstateを渡す場合は、渡された値を更新するonChangeハンドラも渡す。
@@ -27,19 +26,20 @@ function SearchBox({ query, onChange }) {
     );
 }
 
+// Appコンポーネントで呼び出す子コンポーネント、「RecipeCard」の定義
 function RecipeCard({
-    recipe,
-    onDelete,
-    onEdit,
-    isEditing,
-    editName,
-    setEditName,
-    editIngredients,
-    setEditIngredients,
-    onSaveEdit,
-    onCancelEdit
+    recipe, // レシピデータのオブジェクトを受け取るprops
+    onDelete, // レシピ削除の関数を受け取るprops
+    onEdit, // レシピ編集の関数を受け取るprops
+    isEditing, // 編集中かどうかの状態を受け取るprops
+    editName, // 編集中のレシピ名の状態を受け取るprops
+    setEditName, // 編集中のレシピ名を更新する関数を受け取るprops
+    editIngredients, // 編集中の材料入力の状態を受け取るprops
+    setEditIngredients, // 編集中の材料入力を更新する関数を受け取るprops
+    onSaveEdit, // 編集内容を保存する関数を受け取るprops
+    onCancelEdit // 編集をキャンセルする関数を受け取るprops
 }) {
-    // レシピ1件分の表示のコンポーネント化
+    // レシピ1件分を表示するためのコンポーネントとして、編集状態によって表示内容を切り替える
     return (
         <li>
             {isEditing ? (
@@ -59,7 +59,7 @@ function RecipeCard({
                 </div>
             ) : (
                 <div>
-                    <strong>{recipe.name}</strong>（{recipe.ingredients.join("、")}）{/* レシピ名と材料を表示する。joinで配列を文字列に変換する。 */}
+                    <strong>{recipe.name}</strong>（{recipe.ingredients.join("、")}）{/* レシピ名と材料を表示し、配列を区切り文字付きの文字列に変換する */}
                     <div>
                         <button onClick={() => onEdit(recipe)}>編集</button>
                         <button onClick={() => onDelete(recipe.id)}>削除</button>
@@ -98,6 +98,7 @@ function App() {
         const trimmedName = newName.trim();
         if (trimmedName === "") return; // 入力欄が空の場合は何もしない
 
+        // 材料入力をカンマ区切りで配列に変換する
         const ingredients = newIngredients
             .split(",")
             .map(ingredient => ingredient.trim())
@@ -111,39 +112,44 @@ function App() {
         setNewIngredients(""); // 材料入力欄もリセットする
     };
 
+    // 編集対象のレシピを選択して、編集フォームにその内容を反映する
     const startEdit = (recipe) => {
         setEditingRecipeId(recipe.id);
         setEditName(recipe.name);
         setEditIngredients(recipe.ingredients.join(", "));
     };
 
+    // 編集状態をリセットして、入力欄を初期化する
     const cancelEdit = () => {
         setEditingRecipeId(null);
         setEditName("");
         setEditIngredients("");
     };
 
+    // 編集内容を反映して、保存後に編集状態を終了する
     const saveEdit = () => {
-        const trimmedName = editName.trim();
-        if (trimmedName === "") return;
+        const trimmedName = editName.trim(); // 入力されたレシピ名の前後空白を取り除く
+        if (trimmedName === "") return; // レシピ名が空なら保存処理を中断する
 
         const ingredients = editIngredients
-            .split(",")
-            .map(ingredient => ingredient.trim())
-            .filter(Boolean);
+            .split(",") // 材料入力をカンマ区切りで配列に分解する
+            .map(ingredient => ingredient.trim()) // 各材料の前後空白を取り除く
+            .filter(Boolean); // 空文字を除外して、実際の材料だけを残す
 
         setRecipes(prevRecipes =>
             prevRecipes.map(recipe =>
-                recipe.id === editingRecipeId
-                    ? { ...recipe, name: trimmedName, ingredients }
-                    : recipe
+                // 編集対象のレシピかどうかを判定する
+                recipe.id === editingRecipeId // 「編集対象のレシピか？」
+                    ? { ...recipe, name: trimmedName, ingredients } // 編集対象のレシピなら、nameとingredientsを更新する
+                    : recipe // 編集対象でないレシピはそのまま返す
             )
         );
-        cancelEdit();
+        cancelEdit(); // 保存後に編集フォームの状態をリセットする
     };
 
+    // 指定したレシピを削除し、編集中のレシピが削除対象なら編集状態もリセットする
     const deleteRecipe = (id) => {
-        setRecipes(prevRecipes => prevRecipes.filter(recipe => recipe.id !== id));
+        setRecipes(prevRecipes => prevRecipes.filter(recipe => recipe.id !== id)); //
         if (editingRecipeId === id) {
             cancelEdit();
         }
@@ -177,6 +183,7 @@ function App() {
                 : (<ul> {/*// 順序なしリスト（ul要素）で検索結果を表示する */}
                     {results.map(recipe =>  // 検索結果があるとき、results配列のリスト(li要素)を作成。
                     (
+                        // RecipeCardコンポーネントを使って、各レシピを表示する
                         <RecipeCard
                             key={recipe.id}
                             recipe={recipe}
@@ -189,7 +196,7 @@ function App() {
                             setEditIngredients={setEditIngredients}
                             onSaveEdit={saveEdit}
                             onCancelEdit={cancelEdit}
-                        /> // keyはReactがリストの要素を識別するために必要。recipe.idを使うことで一意の値を指定する。
+                        />
                     ))}
                 </ul>
                 )}
