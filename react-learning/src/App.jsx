@@ -7,7 +7,7 @@
 import { useState, useEffect } from "react";
 import SearchBox from "./components/SearchBox";
 import AddRecipeForm from "./components/AddRecipeForm";
-import RecipeCard from "./components/RecipeCard";
+import RecipeList from "./components/RecipeList";
 
 // デフォルトレシピデータ recipes.jsに該当
 // js版と別に変わらない
@@ -125,27 +125,22 @@ function App() {
             />
 
             {/* 検索結果の有無で表示内容を切り替える */}
-            {results.length === 0
-                ? (<p>該当するレシピがありません。</p>)// 検索結果がないとき
-                : (<ul> {/*// 順序なしリスト（ul要素）で検索結果を表示する */}
-                    {results.map(recipe =>  // 検索結果があるとき、results配列のリスト(li要素)を作成。
-                    (
-                        // RecipeCardコンポーネントを使って、各レシピを表示する
-                        <RecipeCard
-                            key={recipe.id}
-                            recipe={recipe}
-                            onDelete={deleteRecipe}
-                            onEdit={startEdit}
-                            isEditing={editingRecipeId === recipe.id}
-                            editName={editName}
-                            setEditName={setEditName}
-                            editIngredients={editIngredients}
-                            setEditIngredients={setEditIngredients}
-                            onSaveEdit={saveEdit}
-                            onCancelEdit={cancelEdit}
-                        />
-                    ))}
-                </ul>
+            {results.length === 0 // 「検索結果は空か？」
+                ? (<p>該当するレシピがありません。</p>)// 検索結果が空の時はメッセージ
+                : ( //検索結果がある時はレシピ一覧表示
+                    // 
+                    <RecipeList
+                        recipes={results}
+                        editingRecipeId={editingRecipeId}
+                        editName={editName}
+                        setEditName={setEditName}
+                        editIngredients={editIngredients}
+                        setEditIngredients={setEditIngredients}
+                        onEdit={startEdit}
+                        onDelete={deleteRecipe}
+                        onSaveEdit={saveEdit}
+                        onCancelEdit={cancelEdit}
+                    />
                 )}
 
             <AddRecipeForm
