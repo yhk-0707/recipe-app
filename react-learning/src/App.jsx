@@ -10,6 +10,7 @@ import AddRecipeForm from "./components/AddRecipeForm";
 import RecipeList from "./components/RecipeList";
 import RegisterRecipeForm from "./components/RegisterRecipeForm";
 import defaultRecipes from "./data/defaultRecipes";
+import "./App.css/"
 
 // Appコンポーネントの定義
 function App() {
