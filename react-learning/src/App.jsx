@@ -7,6 +7,7 @@
 import { useState, useEffect } from "react";
 import SearchBox from "./components/SearchBox";
 import AddRecipeForm from "./components/AddRecipeForm";
+import RecipeCard from "./components/RecipeCard";
 
 // デフォルトレシピデータ recipes.jsに該当
 // js版と別に変わらない
@@ -15,50 +16,6 @@ const defaultRecipes = [
     { id: 2, name: "親子丼", ingredients: ["鶏肉", "卵", "玉ねぎ"] },
     { id: 3, name: "カレーライス", ingredients: ["じゃがいも", "にんじん", "玉ねぎ"] },
 ];
-
-// Appコンポーネントで呼び出す子コンポーネント、「RecipeCard」の定義
-function RecipeCard({
-    recipe, // レシピデータのオブジェクトを受け取るprops
-    onDelete, // レシピ削除の関数を受け取るprops
-    onEdit, // レシピ編集の関数を受け取るprops
-    isEditing, // 編集中かどうかの状態を受け取るprops
-    editName, // 編集中のレシピ名の状態を受け取るprops
-    setEditName, // 編集中のレシピ名を更新する関数を受け取るprops
-    editIngredients, // 編集中の材料入力の状態を受け取るprops
-    setEditIngredients, // 編集中の材料入力を更新する関数を受け取るprops
-    onSaveEdit, // 編集内容を保存する関数を受け取るprops
-    onCancelEdit // 編集をキャンセルする関数を受け取るprops
-}) {
-    // レシピ1件分を表示するためのコンポーネントとして、編集状態によって表示内容を切り替える
-    return (
-        <li>
-            {isEditing ? (
-                <div>
-                    <input
-                        value={editName}
-                        onChange={e => setEditName(e.target.value)}
-                        placeholder="レシピ名"
-                    />
-                    <input
-                        value={editIngredients}
-                        onChange={e => setEditIngredients(e.target.value)}
-                        placeholder="材料をカンマ区切りで入力"
-                    />
-                    <button onClick={onSaveEdit}>保存</button>
-                    <button onClick={onCancelEdit}>キャンセル</button>
-                </div>
-            ) : (
-                <div>
-                    <strong>{recipe.name}</strong>（{recipe.ingredients.join("、")}）{/* レシピ名と材料を表示し、配列を区切り文字付きの文字列に変換する */}
-                    <div>
-                        <button onClick={() => onEdit(recipe)}>編集</button>
-                        <button onClick={() => onDelete(recipe.id)}>削除</button>
-                    </div>
-                </div>
-            )}
-        </li>
-    );
-}
 
 // Appコンポーネントの定義
 function App() {
