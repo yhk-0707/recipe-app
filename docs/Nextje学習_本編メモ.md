@@ -87,5 +87,8 @@ bun --version
 なのでNoでカスタマイズセッティング  
 →完了！
 
+- `bun dev`でサーバー起動も成功。  
+「To get started, edit the page.tsx file.」ページが表示されました。
+
 ## 03 ファイルベースルーティング — フォルダ構成がURLになる
 
