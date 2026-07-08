@@ -3,24 +3,30 @@ import { prisma } from '@/lib/prisma';
 import { findRecipesByIngredientsOrName, normalizeSearchInput } from '@/lib/search';
 
 export async function GET(request: NextRequest) {
+  // クエリパラメータ q から検索語を取り出す
   const q = request.nextUrl.searchParams.get('q')?.trim() ?? '';
 
+  // まずは作成日時の降順で全件を取得する
   const recipes = await prisma.recipe.findMany({
     orderBy: { createdAt: 'desc' },
   });
 
+  // 検索条件がなければ、そのまま一覧を返す
   if (!q) {
     return NextResponse.json(recipes);
   }
 
+  // 入力を検索用の語に分解して、検索ロジックへ渡す
   const searchTerms = normalizeSearchInput(q);
   return NextResponse.json(findRecipesByIngredientsOrName(recipes, searchTerms));
 }
 
 export async function POST(request: NextRequest) {
+  // リクエストボディから新規レシピの入力値を受け取る
   const body = await request.json();
   const name = typeof body.name === 'string' ? body.name.trim() : '';
 
+  // 料理名は必須にする
   if (!name) {
     return NextResponse.json(
       { message: '料理名を入力してください。' },
@@ -28,6 +34,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // 入力値をそのまま保存用データに整形して登録する
   const recipe = await prisma.recipe.create({
     data: {
       name,
