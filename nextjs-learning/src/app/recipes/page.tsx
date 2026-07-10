@@ -22,7 +22,8 @@ export default async function RecipesPage({ searchParams }: RecipesPageProps) {
     orderBy: { createdAt: 'desc' },
   });
 
-  // 検索キーワードがあれば、旧実装の検索ロジックを使って絞り込む
+  // 旧React版の app.js の searchRecipe() 内で行っていた
+  // normalizeSearchInput() + findRecipesByIngredientsOrName() の検索処理に相当する
   const visibleRecipes = q
     ? findRecipesByIngredientsOrName(recipes, normalizeSearchInput(q))
     : recipes;
@@ -33,6 +34,7 @@ export default async function RecipesPage({ searchParams }: RecipesPageProps) {
       <h1>登録済み一覧</h1>
       <p>検索キーワード: {q || 'なし'}</p>
       <p>
+        {/* 旧React版の recipes.html から index.html に戻る導線に相当する */}
         <Link href="/">検索トップへ戻る</Link>
       </p>
 
@@ -40,10 +42,11 @@ export default async function RecipesPage({ searchParams }: RecipesPageProps) {
       {visibleRecipes.length === 0 ? (
         <p>レシピがありません。</p>
       ) : (
-        // 旧React版の displayRecipeList() / renderRecipeListItem() に相当する描画
+        // 旧React版の ui.js の displayRecipeList() / renderRecipeListItem() に相当する描画
         <ul>
           {visibleRecipes.map((recipe) => (
             <li key={recipe.id}>
+              {/* 旧React版の detail.html?id=... へのリンクに相当する */}
               <Link href={`/recipes/${recipe.id}`}>{recipe.name}</Link>
             </li>
           ))}

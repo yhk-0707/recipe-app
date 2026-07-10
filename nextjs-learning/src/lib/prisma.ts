@@ -1,22 +1,21 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 
-// 1. データベースの接続URLを使って、PostgreSQL用のアダプター（接続の仲介役）を作成
-// process.env.DATABASE_URL は環境変数（.envやprisma.config.ts）から読み込まれます
+// 旧React版では localStorage / data/recipes.js がデータの置き場だった
+// Next.js版では PostgreSQL に接続するための Prisma アダプターをここで作る
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 
-// 2. グローバルオブジェクト（Node.js/Bunの実行メモリ空間）に、すでにPrismaの接続インスタンスが存在するか確認するための型定義
-// Next.jsの開発環境における「ホットリロード（ファイルの自動再読み込み）」対策です
+// 旧React版にはなかった Next.js / Prisma 側の接続管理用メモ
+// 開発中のホットリロードで接続インスタンスが増えすぎないようにする
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-// 3. アプリ全体で使い回す「prisma」インスタンスをエクスポート（シングルトンパターン）
-// すでにグローバルに既存の接続（globalForPrisma.prisma）があればそれを使い回し、無ければ新しい接続を作ります
+// アプリ全体で使い回す PrismaClient を1つだけ持つ
+// 既存の接続があれば再利用し、なければ新しく作る
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter });
 
-// 4. もし「本番環境（production）」ではない場合（＝ローカルの開発環境の場合）
-// 新しく作った接続インスタンスをグローバル領域に保存して、次のホットリロード時に使い回せるようにロックします
+// 開発環境ではグローバルに保存して、次回以降の再読み込みで使い回す
 if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma;
 }

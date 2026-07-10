@@ -9,19 +9,24 @@ type DetailPageProps = {
 };
 
 export default async function RecipeDetailPage({ params }: DetailPageProps) {
-  // URL の id を受け取って、DB から 1 件だけ取得する
+  // 旧React版の getRecipeIdFromQuery() に相当する params.id の受け取り
   const { id } = await params;
+
+  // 旧React版の initializeDetailPage() 内で行っていた getRecipeById(recipeId) に相当する
   const recipe = await prisma.recipe.findUnique({
     where: { id: Number(id) },
   });
 
   return (
     <main>
+      {/* 旧React版の renderRecipeDetail(recipe) の最小版に相当する詳細画面 */}
       <h1>レシピ詳細</h1>
 
+      {/* 旧React版の renderRecipeDetail() で recipe がないときの表示に相当する */}
       {recipe ? <h2>{recipe.name}</h2> : <p>指定されたレシピが見つかりませんでした。</p>}
 
       <p>
+        {/* 旧React版の recipes.html へ戻るリンクに相当する */}
         <Link href="/recipes">一覧に戻る</Link>
       </p>
     </main>

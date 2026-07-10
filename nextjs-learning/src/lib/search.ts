@@ -1,6 +1,7 @@
 import type { Recipe } from '@prisma/client';
 
 export function normalizeSearchInput(input: string): string[] {
+  // 旧React版の src/domain/search.js の normalizeSearchInput() に相当する
   // スペース区切りで検索語を分解し、小文字に揃えて空文字を除外する
   return input
     .split(' ')
@@ -12,6 +13,7 @@ export function findRecipesByIngredientsOrName(
   recipes: Recipe[],
   searchTerms: string[],
 ): Recipe[] {
+  // 旧React版の src/domain/search.js の findRecipesByIngredientsOrName() に相当する
   // 検索語が空なら、旧実装と同じく結果は返さない
   if (searchTerms.length === 0) {
     return recipes;
