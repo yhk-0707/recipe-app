@@ -1,23 +1,21 @@
-# DB本体（PostgreSQL）
 services:
   db:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: recipe_app
     ports:
-      - "5454:5432" # ホスト側は他アプリと衝突しやすいためポートをずらしている
+      - '5454:5432'
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql
 
-  # DBの中身をブラウザで確認できるGUIツール
   adminer:
     image: adminer
     restart: unless-stopped
     ports:
-      - "8088:8080"
+      - '8088:8080'
     depends_on:
       - db
 
