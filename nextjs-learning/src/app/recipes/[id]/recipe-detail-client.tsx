@@ -3,6 +3,15 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import {
+  Button,
+  Card,
+  Field,
+  SectionTitle,
+  TextArea,
+  TextInput,
+} from "@/components/ui";
+
 type Recipe = {
   id: number;
   name: string;
@@ -19,15 +28,17 @@ type DeletedRecipe = {
   url: string;
 };
 
-// 削除後に一覧画面へ戻ったとき、Undo 用データを受け渡すための保存先
+// 削除後に一覧へ戻ったとき、Undo 用データを受け渡す保存先。
 const DELETED_RECIPE_KEY = "deleted-recipe";
 
-// 旧React版の formatIngredientsTextarea() に相当する
+// 材料の配列を textarea に戻す。
+// 編集画面では「1行1材料」に直して入力させる。
 function formatIngredientsTextarea(ingredients: Recipe["ingredients"]) {
   return ingredients.map((item) => `${item.name}|${item.amount}`).join("\n");
 }
 
-// 旧React版の parseIngredientsTextarea() に相当する
+// textarea の各行を材料配列に戻す。
+// `name|amount` の簡易フォーマットで保存している。
 function parseIngredientsTextarea(text: string) {
   return text
     .split("\n")
@@ -42,7 +53,7 @@ function parseIngredientsTextarea(text: string) {
     });
 }
 
-// 旧React版の parseStepsTextarea() に相当する
+// 手順も textarea では1行1手順で扱う。
 function parseStepsTextarea(text: string) {
   return text
     .split("\n")
@@ -52,9 +63,9 @@ function parseStepsTextarea(text: string) {
 
 export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
   const router = useRouter();
-  // 編集モードの有無を持つ。旧React版の editMode の切り替えに相当する
+  // 編集モードの有無。
   const [isEditing, setIsEditing] = useState(false);
-  // 以降は編集フォームで扱う入力値を state に持つ
+  // フォーム入力値は state に持つ。
   const [name, setName] = useState(recipe.name);
   const [ingredientsText, setIngredientsText] = useState(
     formatIngredientsTextarea(recipe.ingredients),
@@ -63,12 +74,13 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
   const [url, setUrl] = useState(recipe.url);
 
   async function handleSave() {
-    // 旧React版の saveButton を押した時の処理に相当する
+    // 名前だけは空欄を許さない。
     if (!name.trim()) {
       alert("料理名を入力してください。");
       return;
     }
 
+    // 編集後の内容を API に送る。
     const response = await fetch(`/api/recipes/${recipe.id}`, {
       method: "PATCH",
       headers: {
@@ -98,7 +110,7 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
   }
 
   function handleCancel() {
-    // 旧React版の cancelButton を押した時の処理に相当する
+    // キャンセル時は元の recipe 情報に戻す。
     setName(recipe.name);
     setIngredientsText(formatIngredientsTextarea(recipe.ingredients));
     setStepsText(recipe.steps.join("\n"));
@@ -107,7 +119,7 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
   }
 
   async function handleDelete() {
-    // レシピを論理削除して一覧へ戻る
+    // 本当に削除するか最終確認する。
     const confirmed = window.confirm("このレシピを削除する？");
     if (!confirmed) {
       return;
@@ -123,8 +135,8 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
       return;
     }
 
+    // Undo 用に sessionStorage へ保存して一覧へ戻る。
     const deletedRecipe = (await response.json()) as DeletedRecipe;
-    // 削除した内容を一覧ページへ渡して、Undo トーストで復元できるようにする
     window.sessionStorage.setItem(
       DELETED_RECIPE_KEY,
       JSON.stringify(deletedRecipe),
@@ -133,71 +145,77 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
   }
 
   return (
-    <section>
+    <Card className="space-y-5">
       {isEditing ? (
-        // 編集時はフォームを表示する
-        <div>
-          <div>
-            <label htmlFor="editName">料理名</label>
-            <input
+        <div className="space-y-4">
+          {/* 編集時はフォームをそのまま表示する。 */}
+          <SectionTitle>編集する</SectionTitle>
+
+          <Field htmlFor="editName" label="料理名">
+            <TextInput
               id="editName"
               value={name}
               onChange={(event) => setName(event.target.value)}
             />
-          </div>
+          </Field>
 
-          <div>
-            <label htmlFor="editIngredients">材料</label>
-            <textarea
+          <Field htmlFor="editIngredients" label="材料">
+            <TextArea
               id="editIngredients"
               value={ingredientsText}
               onChange={(event) => setIngredientsText(event.target.value)}
               rows={6}
             />
-          </div>
+          </Field>
 
-          <div>
-            <label htmlFor="editSteps">手順</label>
-            <textarea
+          <Field htmlFor="editSteps" label="手順">
+            <TextArea
               id="editSteps"
               value={stepsText}
               onChange={(event) => setStepsText(event.target.value)}
               rows={6}
             />
-          </div>
+          </Field>
 
-          <div>
-            <label htmlFor="editUrl">参考URL</label>
-            <input
+          <Field htmlFor="editUrl" label="参考URL">
+            <TextInput
               id="editUrl"
               type="url"
               value={url}
               onChange={(event) => setUrl(event.target.value)}
             />
-          </div>
+          </Field>
 
-          <button type="button" onClick={handleSave}>
-            保存
-          </button>
-          <button type="button" onClick={handleCancel}>
-            キャンセル
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" onClick={handleSave}>
+              保存
+            </Button>
+            <Button type="button" variant="secondary" onClick={handleCancel}>
+              キャンセル
+            </Button>
+          </div>
         </div>
       ) : (
-        // 通常時は詳細表示を出す
-        <div>
-          <h2>{name}</h2>
-          {url ? (
-            <p>
-              <a href={url} target="_blank" rel="noreferrer">
+        <div className="space-y-5">
+          {/* 通常時は閲覧モード。 */}
+          <div className="space-y-3">
+            <SectionTitle>{name}</SectionTitle>
+            {url ? (
+              <a
+                href={url}
+                target="_blank"
+                rel="noreferrer"
+                className="break-all text-foreground hover:text-accent"
+              >
                 {url}
               </a>
-            </p>
-          ) : null}
-          <section>
-            <h3>材料</h3>
-            <ul>
-              {/* 旧React版の材料一覧表示に相当する */}
+            ) : null}
+          </div>
+
+          <section className="space-y-3">
+            {/* 材料は配列をそのまま表示する。 */}
+            <SectionTitle>材料</SectionTitle>
+            <ul className="list-none space-y-2 p-0">
               {recipe.ingredients.map((ingredient) => (
                 <li key={`${ingredient.name}-${ingredient.amount}`}>
                   {ingredient.name} {ingredient.amount}
@@ -205,25 +223,31 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
               ))}
             </ul>
           </section>
-          <section>
-            <h3>手順</h3>
-            <ol>
-              {/* 旧React版の手順一覧表示に相当する */}
+
+          <section className="space-y-3">
+            {/* 手順も配列で順番に表示する。 */}
+            <SectionTitle>手順</SectionTitle>
+            <ol className="list-none space-y-2 p-0">
               {recipe.steps.map((step) => (
                 <li key={step}>{step}</li>
               ))}
             </ol>
           </section>
-          {/* 旧React版の detail.js の「編集する」ボタンに相当する */}
-          <button type="button" onClick={() => setIsEditing(true)}>
-            編集する
-          </button>
-          {/* 旧React版の detail.js の deleteRecipe() に相当する */}
-          <button type="button" onClick={handleDelete}>
-            削除する
-          </button>
+
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setIsEditing(true)}
+            >
+              編集する
+            </Button>
+            <Button type="button" onClick={handleDelete}>
+              削除する
+            </Button>
+          </div>
         </div>
       )}
-    </section>
+    </Card>
   );
 }

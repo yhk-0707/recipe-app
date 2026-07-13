@@ -1,5 +1,10 @@
-import Link from "next/link";
-
+import {
+  Card,
+  LinkButton,
+  MutedText,
+  PageShell,
+  PageTitle,
+} from "@/components/ui";
 import { prisma } from "@/lib/prisma";
 import { RecipeDetailClient } from "./recipe-detail-client";
 
@@ -23,33 +28,43 @@ export default async function RecipeDetailPage({ params }: DetailPageProps) {
   });
 
   return (
-    <main>
+    <PageShell>
       {/* 旧React版の renderRecipeDetail(recipe) の最小版に相当する詳細画面 */}
-      <h1>レシピ詳細</h1>
+      <Card className="space-y-4">
+        <PageTitle>レシピ詳細</PageTitle>
+        <div className="flex flex-wrap gap-2">
+          {/* 旧React版の recipes.html へ戻るリンクに相当する */}
+          <LinkButton href="/recipes" variant="secondary">
+            一覧に戻る
+          </LinkButton>
+          {/* 旧React版の index.html へ戻る導線に相当する */}
+          <LinkButton href="/" variant="secondary">
+            トップへ戻る
+          </LinkButton>
+        </div>
+      </Card>
 
       {/* 旧React版の renderRecipeDetail() で recipe がないときの表示に相当する */}
       {!recipe ? (
-        <p>指定されたレシピが見つかりませんでした。</p>
+        <Card>指定されたレシピが見つかりませんでした。</Card>
       ) : (
         // 表示と編集の切り替えは client component に分けている
-        <RecipeDetailClient
-          recipe={{
-            id: recipe.id,
-            name: recipe.name,
-            ingredients: recipe.ingredients as {
-              name: string;
-              amount: string;
-            }[],
-            steps: recipe.steps,
-            url: recipe.url ?? "",
-          }}
-        />
+        <div className="space-y-4">
+          <MutedText>詳細を確認して、編集または削除できます。</MutedText>
+          <RecipeDetailClient
+            recipe={{
+              id: recipe.id,
+              name: recipe.name,
+              ingredients: recipe.ingredients as {
+                name: string;
+                amount: string;
+              }[],
+              steps: recipe.steps,
+              url: recipe.url ?? "",
+            }}
+          />
+        </div>
       )}
-
-      <p>
-        {/* 旧React版の recipes.html へ戻るリンクに相当する */}
-        <Link href="/recipes">一覧に戻る</Link>
-      </p>
-    </main>
+    </PageShell>
   );
 }

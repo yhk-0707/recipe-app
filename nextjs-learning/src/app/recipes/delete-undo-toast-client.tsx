@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { Button } from "@/components/ui";
+
 type DeletedRecipe = {
   id: number;
   name: string;
@@ -11,17 +13,18 @@ type DeletedRecipe = {
   url: string;
 };
 
+// 削除データを一覧ページへまたがって持ち運ぶためのキー。
 const DELETED_RECIPE_KEY = "deleted-recipe";
 
-// 旧React版の toast.js / detail.js の Undo トースト表示に相当する
 export function DeleteUndoToastClient() {
   const router = useRouter();
+  // sessionStorage に保存されている削除レコードを読み込んで表示する。
   const [deletedRecipe, setDeletedRecipe] = useState<DeletedRecipe | null>(
     null,
   );
 
   useEffect(() => {
-    // detail ページで保存された削除データを読み込む
+    // 詳細画面で削除された直後だけ、ここにデータが入る。
     const raw = window.sessionStorage.getItem(DELETED_RECIPE_KEY);
     if (!raw) {
       return;
@@ -39,7 +42,7 @@ export function DeleteUndoToastClient() {
       return;
     }
 
-    // 論理削除したレシピを復元する
+    // API に復元を依頼する。
     const response = await fetch(`/api/recipes/${deletedRecipe.id}/restore`, {
       method: "POST",
     });
@@ -56,7 +59,7 @@ export function DeleteUndoToastClient() {
   }
 
   function handleClose() {
-    // Undo しないなら保存データだけ消して、トーストを閉じる
+    // Undo しないなら保存データを捨てて閉じる。
     window.sessionStorage.removeItem(DELETED_RECIPE_KEY);
     setDeletedRecipe(null);
   }
@@ -66,24 +69,18 @@ export function DeleteUndoToastClient() {
   }
 
   return (
-    <aside
-      style={{
-        position: "fixed",
-        right: "16px",
-        bottom: "16px",
-        zIndex: 50,
-        padding: "12px 16px",
-        border: "1px solid #999",
-        background: "#fff",
-      }}
-    >
-      <p>「{deletedRecipe.name}」を削除しました。</p>
-      <button type="button" onClick={handleUndo}>
-        元に戻す
-      </button>
-      <button type="button" onClick={handleClose}>
-        閉じる
-      </button>
+    <aside className="fixed bottom-4 right-4 z-50 flex max-w-[calc(100vw-32px)] flex-col gap-3 rounded-md border border-border bg-white p-3 shadow-[0_6px_20px_rgba(2,6,23,0.15)]">
+      <p className="text-sm text-foreground">
+        「{deletedRecipe.name}」を削除しました。
+      </p>
+      <div className="flex flex-wrap gap-2">
+        <Button type="button" onClick={handleUndo}>
+          元に戻す
+        </Button>
+        <Button type="button" variant="secondary" onClick={handleClose}>
+          閉じる
+        </Button>
+      </div>
     </aside>
   );
 }

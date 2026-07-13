@@ -1,6 +1,19 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import type { FormEvent } from "react";
+import { useState } from "react";
+
+import {
+  Button,
+  Card,
+  Field,
+  LinkButton,
+  MutedText,
+  PageShell,
+  PageTitle,
+  TextArea,
+  TextInput,
+} from "@/components/ui";
 
 type ParsedRecipe = {
   name: string;
@@ -10,74 +23,65 @@ type ParsedRecipe = {
 };
 
 function parseFormattedRecipe(text: string): ParsedRecipe {
-  // 旧React版の src/domain/parser.js の parseFormattedRecipe() をこのページ用に移したもの
-  const lines = text.split('\n');
-  let recipeName = '';
+  const lines = text.split("\n");
+  let recipeName = "";
   const ingredients: { name: string; amount: string }[] = [];
   const steps: string[] = [];
-  let recipeUrl = '';
-  let mode = '';
+  let recipeUrl = "";
+  let mode = "";
 
   lines.forEach((line) => {
     const trimmed = line.trim();
 
-    // 「料理名」行を見つけたら、次の行をタイトルとして読む
-    if (trimmed.startsWith('料理名')) {
-      mode = 'title';
+    if (trimmed.startsWith("料理名")) {
+      mode = "title";
       return;
     }
 
-    // 料理名モード中の最初の非空行をタイトルにする
-    if (mode === 'title' && trimmed !== '') {
+    if (mode === "title" && trimmed !== "") {
       recipeName = trimmed;
-      mode = '';
+      mode = "";
       return;
     }
 
-    // 「材料」行から材料モードに入る
-    if (trimmed.startsWith('材料')) {
-      mode = 'ingredients';
+    if (trimmed.startsWith("材料")) {
+      mode = "ingredients";
       return;
     }
 
-    // 「手順」行から手順モードに入る
-    if (trimmed.startsWith('手順')) {
-      mode = 'steps';
+    if (trimmed.startsWith("手順")) {
+      mode = "steps";
       return;
     }
 
-    // 「参考URL」行は、その行に値があればそのまま使い、なければ次の行を読む
-    if (trimmed.startsWith('参考URL')) {
-      const value = trimmed.replace(/.*参考URL[:：]?\s*/, '').trim();
+    if (trimmed.startsWith("参考URL")) {
+      const value = trimmed.replace(/.*参考URL[:：]?\s*/, "").trim();
       if (value) {
         recipeUrl = value;
       } else {
-        mode = 'url';
+        mode = "url";
       }
       return;
     }
 
-    // URLモード中の最初の非空行を参考URLとして読む
-    if (mode === 'url' && trimmed !== '') {
+    if (mode === "url" && trimmed !== "") {
       recipeUrl = trimmed;
-      mode = '';
+      mode = "";
       return;
     }
 
-    // 材料モードでは「- name|amount」の形式を配列に変換する
-    if (mode === 'ingredients' && trimmed.startsWith('-')) {
-      const item = trimmed.replace(/^-/, '').trim();
-      const parts = item.split('|');
+    if (mode === "ingredients" && trimmed.startsWith("-")) {
+      const item = trimmed.replace(/^-/, "").trim();
+      const parts = item.split("|");
       ingredients.push({
-        name: parts[0]?.trim() || '',
-        amount: parts[1]?.trim() || '',
+        name: parts[0]?.trim() || "",
+        amount: parts[1]?.trim() || "",
       });
       return;
     }
 
-    // 手順モードでは、先頭の番号を外して配列に追加する
-    if (mode === 'steps' && trimmed !== '') {
-      steps.push(trimmed.replace(/^\d+\./, '').trim());
+    if (mode === "steps" && trimmed !== "") {
+      steps.push(trimmed.replace(/^\d+\./, "").trim());
     }
   });
 
@@ -90,71 +94,83 @@ function parseFormattedRecipe(text: string): ParsedRecipe {
 }
 
 export default function RegisterPage() {
-  const [recipeText, setRecipeText] = useState('');
-  const [recipeUrl, setRecipeUrl] = useState('');
+  const [recipeText, setRecipeText] = useState("");
+  const [recipeUrl, setRecipeUrl] = useState("");
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    // 旧React版の setupRecipeForm() で addFormattedButton を押した時の処理に相当する
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    // 旧React版の parseRecipeForm() + parseFormattedRecipe() に相当する
     const parsedRecipe = parseFormattedRecipe(recipeText);
 
-    // 旧React版の parseRecipeForm() の「料理名が空ならエラー」と同じチェック
     if (!parsedRecipe.name) {
       alert(
-        '料理名の形式が正しくありません。\n「料理名」の行の次にタイトルを入力してください。',
+        "料理名の形式が正しくありません。\n「料理名」の行の次にタイトルを入力してください。",
       );
       return;
     }
 
-    // 旧React版では form-utils.js の getRecipeFormValues() で参考URLを別入力できたので、その役割を残す
     if (recipeUrl.trim()) {
       parsedRecipe.url = recipeUrl.trim();
     }
 
-    // 旧React版の addRecipe(recipe) の代わりに、Next.js では API 経由で DB に保存する
-    const response = await fetch('/api/recipes', {
-      method: 'POST',
+    const response = await fetch("/api/recipes", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(parsedRecipe),
     });
 
     if (!response.ok) {
       const result = (await response.json()) as { message?: string };
-      alert(result.message ?? 'レシピを追加できませんでした。');
+      alert(result.message ?? "レシピを追加できませんでした。");
       return;
     }
 
-    alert('レシピを追加しました');
-    setRecipeText('');
-    setRecipeUrl('');
+    alert("レシピを追加しました");
+    setRecipeText("");
+    setRecipeUrl("");
   }
 
   function handleClear() {
-    // 旧React版の resetRecipeForm() に相当する
-    setRecipeText('');
-    setRecipeUrl('');
+    setRecipeText("");
+    setRecipeUrl("");
   }
 
   return (
-    <main>
+    <PageShell>
       {/* 旧React版の register.html / register.js に相当する登録ページ */}
-      <h1>レシピ登録</h1>
+      <Card className="space-y-4">
+        <PageTitle>レシピ登録</PageTitle>
+        <MutedText>整形済みレシピを貼り付けて登録する画面です。</MutedText>
 
-      <form onSubmit={handleSubmit}>
-        <div>
+        <div className="flex flex-wrap gap-2">
+          {/* 旧React版の recipes.html へ戻るリンクに相当する */}
+          <LinkButton href="/recipes" variant="secondary">
+            登録済み一覧へ
+          </LinkButton>
+          {/* 旧React版の index.html に戻る導線に相当する */}
+          <LinkButton href="/" variant="secondary">
+            トップへ戻る
+          </LinkButton>
+        </div>
+      </Card>
+
+      {/* 旧React版の register.js のフォーム領域に相当する */}
+      <Card>
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* 旧React版の recipeText に相当する入力欄 */}
-          <label htmlFor="recipeText">レシピ本文</label>
-          <textarea
-            id="recipeText"
-            value={recipeText}
-            onChange={(event) => setRecipeText(event.target.value)}
-            rows={12}
-            cols={40}
-            placeholder={`料理名
+          <Field
+            htmlFor="recipeText"
+            label="レシピ本文"
+            hint="料理名 / 材料 / 手順 / 参考URL の順で貼り付けてください。"
+          >
+            <TextArea
+              id="recipeText"
+              value={recipeText}
+              onChange={(event) => setRecipeText(event.target.value)}
+              rows={12}
+              placeholder={`料理名
 カレー
 
 材料
@@ -167,27 +183,34 @@ export default function RegisterPage() {
 
 参考URL
 https://example.com`}
-          />
-        </div>
+            />
+          </Field>
 
-        <div>
           {/* 旧React版の recipeUrl に相当する入力欄 */}
-          <label htmlFor="recipeUrl">参考URL</label>
-          <input
-            id="recipeUrl"
-            type="url"
-            value={recipeUrl}
-            onChange={(event) => setRecipeUrl(event.target.value)}
-          />
-        </div>
+          <Field
+            htmlFor="recipeUrl"
+            label="参考URL"
+            hint="本文のURLを上書きしたいときだけ入力。"
+          >
+            <TextInput
+              id="recipeUrl"
+              type="url"
+              value={recipeUrl}
+              onChange={(event) => setRecipeUrl(event.target.value)}
+              placeholder="https://example.com"
+            />
+          </Field>
 
-        {/* 旧React版の addFormattedButton に相当する登録ボタン */}
-        <button type="submit">登録する</button>
-        {/* 旧React版の clearFormButton に相当するクリアボタン */}
-        <button type="button" onClick={handleClear}>
-          クリア
-        </button>
-      </form>
-    </main>
+          <div className="flex flex-wrap gap-2">
+            {/* 旧React版の addFormattedButton に相当する登録ボタン */}
+            <Button type="submit">登録する</Button>
+            {/* 旧React版の clearFormButton に相当するクリアボタン */}
+            <Button type="button" variant="secondary" onClick={handleClear}>
+              クリア
+            </Button>
+          </div>
+        </form>
+      </Card>
+    </PageShell>
   );
 }

@@ -1,5 +1,12 @@
 import Link from "next/link";
 
+import {
+  Card,
+  LinkButton,
+  MutedText,
+  PageShell,
+  PageTitle,
+} from "@/components/ui";
 import { prisma } from "@/lib/prisma";
 import {
   findRecipesByIngredientsOrName,
@@ -34,31 +41,57 @@ export default async function RecipesPage({ searchParams }: RecipesPageProps) {
     : recipes;
 
   return (
-    <main>
+    <PageShell>
       {/* 旧React版の recipes.html / recipes-list.js に相当する一覧画面 */}
-      <h1>登録済み一覧</h1>
+      <Card className="space-y-4">
+        <PageTitle>登録済み一覧</PageTitle>
+        <MutedText>検索キーワード: {q || "なし"}</MutedText>
+        <div className="flex flex-wrap gap-2">
+          {/* 旧React版の recipes.html から index.html に戻る導線に相当する */}
+          <LinkButton href="/" variant="secondary">
+            検索トップへ戻る
+          </LinkButton>
+          {/* 旧React版の register.html への導線に相当する */}
+          <LinkButton href="/register" variant="secondary">
+            レシピ登録へ
+          </LinkButton>
+        </div>
+      </Card>
+
       {/* 旧React版にはなかったが、削除後の Undo 表示を一覧側に載せる */}
       <DeleteUndoToastClient />
-      <p>検索キーワード: {q || "なし"}</p>
-      <p>
-        {/* 旧React版の recipes.html から index.html に戻る導線に相当する */}
-        <Link href="/">検索トップへ戻る</Link>
-      </p>
 
       {/* 登録データがないときは空状態を表示する */}
       {visibleRecipes.length === 0 ? (
-        <p>レシピがありません。</p>
+        <Card>レシピがありません。</Card>
       ) : (
         // 旧React版の ui.js の displayRecipeList() / renderRecipeListItem() に相当する描画
-        <ul>
+        <div className="grid gap-3">
           {visibleRecipes.map((recipe) => (
-            <li key={recipe.id}>
+            <Card key={recipe.id} className="p-0">
               {/* 旧React版の detail.html?id=... へのリンクに相当する */}
-              <Link href={`/recipes/${recipe.id}`}>{recipe.name}</Link>
-            </li>
+              {(() => {
+                const ingredientCount = Array.isArray(recipe.ingredients)
+                  ? recipe.ingredients.length
+                  : 0;
+                const stepCount = recipe.steps.length;
+
+                return (
+                  <Link
+                    href={`/recipes/${recipe.id}`}
+                    className="block px-4 py-3 text-foreground hover:text-accent"
+                  >
+                    <strong className="block font-medium">{recipe.name}</strong>
+                    <span className="mt-2 block text-sm text-muted">
+                      {ingredientCount} 材料 / {stepCount} 手順
+                    </span>
+                  </Link>
+                );
+              })()}
+            </Card>
           ))}
-        </ul>
+        </div>
       )}
-    </main>
+    </PageShell>
   );
 }
