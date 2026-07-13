@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 type DeletedRecipe = {
   id: number;
@@ -11,12 +11,14 @@ type DeletedRecipe = {
   url: string;
 };
 
-const DELETED_RECIPE_KEY = 'deleted-recipe';
+const DELETED_RECIPE_KEY = "deleted-recipe";
 
 // 旧React版の toast.js / detail.js の Undo トースト表示に相当する
 export function DeleteUndoToastClient() {
   const router = useRouter();
-  const [deletedRecipe, setDeletedRecipe] = useState<DeletedRecipe | null>(null);
+  const [deletedRecipe, setDeletedRecipe] = useState<DeletedRecipe | null>(
+    null,
+  );
 
   useEffect(() => {
     // detail ページで保存された削除データを読み込む
@@ -37,18 +39,14 @@ export function DeleteUndoToastClient() {
       return;
     }
 
-    // 旧React版の Undo 処理は、削除したレシピを再登録する流れに相当する
-    const response = await fetch('/api/recipes', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(deletedRecipe),
+    // 論理削除したレシピを復元する
+    const response = await fetch(`/api/recipes/${deletedRecipe.id}/restore`, {
+      method: "POST",
     });
 
     if (!response.ok) {
       const result = (await response.json()) as { message?: string };
-      alert(result.message ?? '元に戻せませんでした。');
+      alert(result.message ?? "元に戻せませんでした。");
       return;
     }
 
@@ -70,13 +68,13 @@ export function DeleteUndoToastClient() {
   return (
     <aside
       style={{
-        position: 'fixed',
-        right: '16px',
-        bottom: '16px',
+        position: "fixed",
+        right: "16px",
+        bottom: "16px",
         zIndex: 50,
-        padding: '12px 16px',
-        border: '1px solid #999',
-        background: '#fff',
+        padding: "12px 16px",
+        border: "1px solid #999",
+        background: "#fff",
       }}
     >
       <p>「{deletedRecipe.name}」を削除しました。</p>

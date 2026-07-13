@@ -1,7 +1,7 @@
-import Link from 'next/link';
+import Link from "next/link";
 
-import { prisma } from '@/lib/prisma';
-import { RecipeDetailClient } from './recipe-detail-client';
+import { prisma } from "@/lib/prisma";
+import { RecipeDetailClient } from "./recipe-detail-client";
 
 type DetailPageProps = {
   params: Promise<{
@@ -14,9 +14,12 @@ export default async function RecipeDetailPage({ params }: DetailPageProps) {
   const { id } = await params;
 
   // 旧React版の initializeDetailPage() 内で行っていた getRecipeById(recipeId) に相当する
-  // ここではDBから対象のレシピを1件だけ取得する
-  const recipe = await prisma.recipe.findUnique({
-    where: { id: Number(id) },
+  // ここではDBから、削除されていない対象レシピを1件だけ取得する
+  const recipe = await prisma.recipe.findFirst({
+    where: {
+      id: Number(id),
+      deletedAt: null,
+    },
   });
 
   return (
@@ -38,7 +41,7 @@ export default async function RecipeDetailPage({ params }: DetailPageProps) {
               amount: string;
             }[],
             steps: recipe.steps,
-            url: recipe.url ?? '',
+            url: recipe.url ?? "",
           }}
         />
       )}

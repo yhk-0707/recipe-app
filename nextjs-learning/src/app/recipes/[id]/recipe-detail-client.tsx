@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 type Recipe = {
   id: number;
@@ -20,24 +20,24 @@ type DeletedRecipe = {
 };
 
 // 削除後に一覧画面へ戻ったとき、Undo 用データを受け渡すための保存先
-const DELETED_RECIPE_KEY = 'deleted-recipe';
+const DELETED_RECIPE_KEY = "deleted-recipe";
 
 // 旧React版の formatIngredientsTextarea() に相当する
-function formatIngredientsTextarea(ingredients: Recipe['ingredients']) {
-  return ingredients.map((item) => `${item.name}|${item.amount}`).join('\n');
+function formatIngredientsTextarea(ingredients: Recipe["ingredients"]) {
+  return ingredients.map((item) => `${item.name}|${item.amount}`).join("\n");
 }
 
 // 旧React版の parseIngredientsTextarea() に相当する
 function parseIngredientsTextarea(text: string) {
   return text
-    .split('\n')
+    .split("\n")
     .map((line) => line.trim())
-    .filter((line) => line !== '')
+    .filter((line) => line !== "")
     .map((line) => {
-      const [name, amount] = line.split('|').map((part) => part.trim());
+      const [name, amount] = line.split("|").map((part) => part.trim());
       return {
-        name: name || '',
-        amount: amount || '',
+        name: name || "",
+        amount: amount || "",
       };
     });
 }
@@ -45,9 +45,9 @@ function parseIngredientsTextarea(text: string) {
 // 旧React版の parseStepsTextarea() に相当する
 function parseStepsTextarea(text: string) {
   return text
-    .split('\n')
+    .split("\n")
     .map((line) => line.trim())
-    .filter((line) => line !== '');
+    .filter((line) => line !== "");
 }
 
 export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
@@ -59,20 +59,20 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
   const [ingredientsText, setIngredientsText] = useState(
     formatIngredientsTextarea(recipe.ingredients),
   );
-  const [stepsText, setStepsText] = useState(recipe.steps.join('\n'));
+  const [stepsText, setStepsText] = useState(recipe.steps.join("\n"));
   const [url, setUrl] = useState(recipe.url);
 
   async function handleSave() {
     // 旧React版の saveButton を押した時の処理に相当する
     if (!name.trim()) {
-      alert('料理名を入力してください。');
+      alert("料理名を入力してください。");
       return;
     }
 
     const response = await fetch(`/api/recipes/${recipe.id}`, {
-      method: 'PATCH',
+      method: "PATCH",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         name: name.trim(),
@@ -84,42 +84,42 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
 
     if (!response.ok) {
       const result = (await response.json()) as { message?: string };
-      alert(result.message ?? 'レシピを更新できませんでした。');
+      alert(result.message ?? "レシピを更新できませんでした。");
       return;
     }
 
     const updatedRecipe = (await response.json()) as Recipe;
     setName(updatedRecipe.name);
     setIngredientsText(formatIngredientsTextarea(updatedRecipe.ingredients));
-    setStepsText(updatedRecipe.steps.join('\n'));
+    setStepsText(updatedRecipe.steps.join("\n"));
     setUrl(updatedRecipe.url);
     setIsEditing(false);
-    alert('レシピを更新しました');
+    alert("レシピを更新しました");
   }
 
   function handleCancel() {
     // 旧React版の cancelButton を押した時の処理に相当する
     setName(recipe.name);
     setIngredientsText(formatIngredientsTextarea(recipe.ingredients));
-    setStepsText(recipe.steps.join('\n'));
+    setStepsText(recipe.steps.join("\n"));
     setUrl(recipe.url);
     setIsEditing(false);
   }
 
   async function handleDelete() {
-    // 旧React版の detail.js にある deleteRecipe() と、その後の一覧戻りに相当する
-    const confirmed = window.confirm('このレシピを削除する？');
+    // レシピを論理削除して一覧へ戻る
+    const confirmed = window.confirm("このレシピを削除する？");
     if (!confirmed) {
       return;
     }
 
     const response = await fetch(`/api/recipes/${recipe.id}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
 
     if (!response.ok) {
       const result = (await response.json()) as { message?: string };
-      alert(result.message ?? 'レシピを削除できませんでした。');
+      alert(result.message ?? "レシピを削除できませんでした。");
       return;
     }
 
@@ -129,7 +129,7 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
       DELETED_RECIPE_KEY,
       JSON.stringify(deletedRecipe),
     );
-    router.push('/recipes');
+    router.push("/recipes");
   }
 
   return (

@@ -17,6 +17,7 @@ model Recipe {
   ingredients Json
   steps       String[]
   url         String?
+  deletedAt   DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

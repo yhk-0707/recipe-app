@@ -1,8 +1,11 @@
-import Link from 'next/link';
+import Link from "next/link";
 
-import { prisma } from '@/lib/prisma';
-import { findRecipesByIngredientsOrName, normalizeSearchInput } from '@/lib/search';
-import { DeleteUndoToastClient } from './delete-undo-toast-client';
+import { prisma } from "@/lib/prisma";
+import {
+  findRecipesByIngredientsOrName,
+  normalizeSearchInput,
+} from "@/lib/search";
+import { DeleteUndoToastClient } from "./delete-undo-toast-client";
 
 type SearchParams = {
   q?: string;
@@ -15,12 +18,13 @@ type RecipesPageProps = {
 export default async function RecipesPage({ searchParams }: RecipesPageProps) {
   // App Router では searchParams からクエリ文字列を受け取る
   const resolvedSearchParams = await searchParams;
-  const q = resolvedSearchParams?.q?.trim() ?? '';
+  const q = resolvedSearchParams?.q?.trim() ?? "";
 
   // 旧React版の initializeRecipes() + getRecipes() に近い役割
-  // ここではDBから登録済みレシピを取得する
+  // ここではDBから、削除されていない登録済みレシピを取得する
   const recipes = await prisma.recipe.findMany({
-    orderBy: { createdAt: 'desc' },
+    where: { deletedAt: null },
+    orderBy: { createdAt: "desc" },
   });
 
   // 旧React版の app.js の searchRecipe() 内で行っていた
@@ -35,7 +39,7 @@ export default async function RecipesPage({ searchParams }: RecipesPageProps) {
       <h1>登録済み一覧</h1>
       {/* 旧React版にはなかったが、削除後の Undo 表示を一覧側に載せる */}
       <DeleteUndoToastClient />
-      <p>検索キーワード: {q || 'なし'}</p>
+      <p>検索キーワード: {q || "なし"}</p>
       <p>
         {/* 旧React版の recipes.html から index.html に戻る導線に相当する */}
         <Link href="/">検索トップへ戻る</Link>
