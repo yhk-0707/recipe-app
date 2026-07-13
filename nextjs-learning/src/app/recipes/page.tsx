@@ -8,7 +8,7 @@ type SearchParams = {
 };
 
 type RecipesPageProps = {
-  searchParams?: Promise<SearchParams> | SearchParams;
+  searchParams?: Promise<SearchParams>;
 };
 
 export default async function RecipesPage({ searchParams }: RecipesPageProps) {
