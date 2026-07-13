@@ -2,6 +2,7 @@ import Link from 'next/link';
 
 import { prisma } from '@/lib/prisma';
 import { findRecipesByIngredientsOrName, normalizeSearchInput } from '@/lib/search';
+import { DeleteUndoToastClient } from './delete-undo-toast-client';
 
 type SearchParams = {
   q?: string;
@@ -32,6 +33,8 @@ export default async function RecipesPage({ searchParams }: RecipesPageProps) {
     <main>
       {/* 旧React版の recipes.html / recipes-list.js に相当する一覧画面 */}
       <h1>登録済み一覧</h1>
+      {/* 旧React版にはなかったが、削除後の Undo 表示を一覧側に載せる */}
+      <DeleteUndoToastClient />
       <p>検索キーワード: {q || 'なし'}</p>
       <p>
         {/* 旧React版の recipes.html から index.html に戻る導線に相当する */}

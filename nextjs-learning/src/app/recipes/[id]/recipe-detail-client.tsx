@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 type Recipe = {
@@ -9,6 +10,17 @@ type Recipe = {
   steps: string[];
   url: string;
 };
+
+type DeletedRecipe = {
+  id: number;
+  name: string;
+  ingredients: { name: string; amount: string }[];
+  steps: string[];
+  url: string;
+};
+
+// 削除後に一覧画面へ戻ったとき、Undo 用データを受け渡すための保存先
+const DELETED_RECIPE_KEY = 'deleted-recipe';
 
 // 旧React版の formatIngredientsTextarea() に相当する
 function formatIngredientsTextarea(ingredients: Recipe['ingredients']) {
@@ -39,6 +51,7 @@ function parseStepsTextarea(text: string) {
 }
 
 export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
+  const router = useRouter();
   // 編集モードの有無を持つ。旧React版の editMode の切り替えに相当する
   const [isEditing, setIsEditing] = useState(false);
   // 以降は編集フォームで扱う入力値を state に持つ
@@ -91,6 +104,32 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
     setStepsText(recipe.steps.join('\n'));
     setUrl(recipe.url);
     setIsEditing(false);
+  }
+
+  async function handleDelete() {
+    // 旧React版の detail.js にある deleteRecipe() と、その後の一覧戻りに相当する
+    const confirmed = window.confirm('このレシピを削除する？');
+    if (!confirmed) {
+      return;
+    }
+
+    const response = await fetch(`/api/recipes/${recipe.id}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      const result = (await response.json()) as { message?: string };
+      alert(result.message ?? 'レシピを削除できませんでした。');
+      return;
+    }
+
+    const deletedRecipe = (await response.json()) as DeletedRecipe;
+    // 削除した内容を一覧ページへ渡して、Undo トーストで復元できるようにする
+    window.sessionStorage.setItem(
+      DELETED_RECIPE_KEY,
+      JSON.stringify(deletedRecipe),
+    );
+    router.push('/recipes');
   }
 
   return (
@@ -175,8 +214,13 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
               ))}
             </ol>
           </section>
+          {/* 旧React版の detail.js の「編集する」ボタンに相当する */}
           <button type="button" onClick={() => setIsEditing(true)}>
             編集する
+          </button>
+          {/* 旧React版の detail.js の deleteRecipe() に相当する */}
+          <button type="button" onClick={handleDelete}>
+            削除する
           </button>
         </div>
       )}
