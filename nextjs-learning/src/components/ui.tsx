@@ -99,6 +99,24 @@ export function MutedText({
   );
 }
 
+// フォームの入力エラーを共通表示する。
+// 登録画面と編集画面で同じ見た目・同じアクセシビリティ属性を使う。
+export function ErrorText({
+  children,
+  className = "",
+  ...props
+}: WrapperProps) {
+  return (
+    <p
+      className={`text-sm font-medium text-[#c23934] ${className}`}
+      role="alert"
+      {...props}
+    >
+      {children}
+    </p>
+  );
+}
+
 // ラベル + 入力欄 + 補足文を1セットにする。
 // フォームはこれを使うと構造がかなり見やすくなる。
 export function Field({ children, htmlFor, hint, label }: FieldProps) {

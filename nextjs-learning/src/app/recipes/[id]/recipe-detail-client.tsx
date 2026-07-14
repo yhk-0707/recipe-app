@@ -6,16 +6,17 @@ import { useState } from "react";
 import {
   Button,
   Card,
+  ErrorText,
   Field,
   SectionTitle,
   TextArea,
   TextInput,
 } from "@/components/ui";
 import {
+  buildRecipePayload,
   formatIngredientLines,
   formatStepLabel,
-  parseIngredientLines,
-  parseStepLines,
+  type RecipeFormErrors,
 } from "@/lib/recipe-form";
 
 type Recipe = {
@@ -48,12 +49,19 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
   );
   const [stepsText, setStepsText] = useState(recipe.steps.join("\n"));
   const [url, setUrl] = useState(recipe.url);
+  const [errors, setErrors] = useState<RecipeFormErrors>({});
   const stepKeyCounts = new Map<string, number>();
 
   async function handleSave() {
-    // 名前だけは空欄を許さない。
-    if (!name.trim()) {
-      alert("料理名を入力してください。");
+    const { recipe: nextRecipe, errors: nextErrors } = buildRecipePayload(
+      name,
+      ingredientsText,
+      stepsText,
+      url,
+    );
+
+    if (!nextRecipe) {
+      setErrors(nextErrors);
       return;
     }
 
@@ -63,12 +71,7 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        name: name.trim(),
-        ingredients: parseIngredientLines(ingredientsText),
-        steps: parseStepLines(stepsText),
-        url: url.trim(),
-      }),
+      body: JSON.stringify(nextRecipe),
     });
 
     if (!response.ok) {
@@ -82,6 +85,7 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
     setIngredientsText(formatIngredientLines(updatedRecipe.ingredients));
     setStepsText(updatedRecipe.steps.join("\n"));
     setUrl(updatedRecipe.url);
+    setErrors({});
     setIsEditing(false);
     alert("レシピを更新しました");
   }
@@ -92,6 +96,7 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
     setIngredientsText(formatIngredientLines(recipe.ingredients));
     setStepsText(recipe.steps.join("\n"));
     setUrl(recipe.url);
+    setErrors({});
     setIsEditing(false);
   }
 
@@ -132,26 +137,49 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
             <TextInput
               id="editName"
               value={name}
-              onChange={(event) => setName(event.target.value)}
+              onChange={(event) => {
+                setName(event.target.value);
+                if (errors.name) {
+                  setErrors((current) => ({ ...current, name: undefined }));
+                }
+              }}
             />
+            {errors.name ? <ErrorText>{errors.name}</ErrorText> : null}
           </Field>
 
           <Field htmlFor="editIngredients" label="材料">
             <TextArea
               id="editIngredients"
               value={ingredientsText}
-              onChange={(event) => setIngredientsText(event.target.value)}
+              onChange={(event) => {
+                setIngredientsText(event.target.value);
+                if (errors.ingredients) {
+                  setErrors((current) => ({
+                    ...current,
+                    ingredients: undefined,
+                  }));
+                }
+              }}
               rows={6}
             />
+            {errors.ingredients ? (
+              <ErrorText>{errors.ingredients}</ErrorText>
+            ) : null}
           </Field>
 
           <Field htmlFor="editSteps" label="手順">
             <TextArea
               id="editSteps"
               value={stepsText}
-              onChange={(event) => setStepsText(event.target.value)}
+              onChange={(event) => {
+                setStepsText(event.target.value);
+                if (errors.steps) {
+                  setErrors((current) => ({ ...current, steps: undefined }));
+                }
+              }}
               rows={6}
             />
+            {errors.steps ? <ErrorText>{errors.steps}</ErrorText> : null}
           </Field>
 
           <Field htmlFor="editUrl" label="参考URL">
