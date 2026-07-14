@@ -73,6 +73,7 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
   );
   const [stepsText, setStepsText] = useState(recipe.steps.join("\n"));
   const [url, setUrl] = useState(recipe.url);
+  const stepKeyCounts = new Map<string, number>();
 
   async function handleSave() {
     // 名前だけは空欄を許さない。
@@ -232,11 +233,18 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
             {/* 手順も配列で順番に表示する。 */}
             <SectionTitle>手順</SectionTitle>
             <ol className="list-none space-y-2 p-0">
-              {recipe.steps.map((step, index) => (
-                <li key={`${index}-${step}`}>
-                  {index + 1}. {step}
-                </li>
-              ))}
+              {recipe.steps.map((step, index) => {
+                // index を key に使うと並び替えや差し替え時に state がずれるので、
+                // 手順文と出現回数で安定した key を作る。
+                const occurrence = (stepKeyCounts.get(step) ?? 0) + 1;
+                stepKeyCounts.set(step, occurrence);
+
+                return (
+                  <li key={`${step}-${occurrence}`}>
+                    {index + 1}. {step}
+                  </li>
+                );
+              })}
             </ol>
           </section>
 
