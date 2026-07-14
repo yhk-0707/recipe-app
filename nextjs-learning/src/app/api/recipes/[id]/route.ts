@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { validateRecipeApiPayload } from "@/lib/recipe-form";
+import { type ApiMessageResponse, toRecipeRecord } from "@/lib/recipe-types";
 
 // Next.js 16 系の Route Handler では params が Promise で渡されるため、先に await して取り出す
 type Params = { params: Promise<{ id: string }> };
@@ -17,11 +18,14 @@ export async function GET(_request: NextRequest, { params }: Params) {
 
   // 見つからなければ 404 を返す
   if (!recipe) {
-    return NextResponse.json({ message: "見つかりません。" }, { status: 404 });
+    return NextResponse.json<ApiMessageResponse>(
+      { message: "見つかりません。" },
+      { status: 404 },
+    );
   }
 
   // 見つかったレシピをそのまま返す
-  return NextResponse.json(recipe);
+  return NextResponse.json(toRecipeRecord(recipe));
 }
 
 export async function PATCH(request: NextRequest, { params }: Params) {
@@ -33,7 +37,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   const { recipe: validatedRecipe, errors } = validateRecipeApiPayload(body);
 
   if (!validatedRecipe) {
-    return NextResponse.json(
+    return NextResponse.json<ApiMessageResponse>(
       {
         message:
           errors.name ??
@@ -55,7 +59,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     });
 
     if (!currentRecipe) {
-      return NextResponse.json(
+      return NextResponse.json<ApiMessageResponse>(
         { message: "見つかりません。" },
         { status: 404 },
       );
@@ -70,10 +74,13 @@ export async function PATCH(request: NextRequest, { params }: Params) {
         url: validatedRecipe.url ? validatedRecipe.url : null,
       },
     });
-    return NextResponse.json(recipe);
+    return NextResponse.json(toRecipeRecord(recipe));
   } catch {
     // 存在しない id だった場合は 404 を返す
-    return NextResponse.json({ message: "見つかりません。" }, { status: 404 });
+    return NextResponse.json<ApiMessageResponse>(
+      { message: "見つかりません。" },
+      { status: 404 },
+    );
   }
 }
 
@@ -90,7 +97,7 @@ export async function DELETE(_request: NextRequest, { params }: Params) {
     });
 
     if (!currentRecipe) {
-      return NextResponse.json(
+      return NextResponse.json<ApiMessageResponse>(
         { message: "見つかりません。" },
         { status: 404 },
       );
@@ -103,9 +110,12 @@ export async function DELETE(_request: NextRequest, { params }: Params) {
       },
     });
 
-    return NextResponse.json(recipe);
+    return NextResponse.json(toRecipeRecord(recipe));
   } catch {
     // 存在しない id だった場合は 404 を返す
-    return NextResponse.json({ message: "見つかりません。" }, { status: 404 });
+    return NextResponse.json<ApiMessageResponse>(
+      { message: "見つかりません。" },
+      { status: 404 },
+    );
   }
 }

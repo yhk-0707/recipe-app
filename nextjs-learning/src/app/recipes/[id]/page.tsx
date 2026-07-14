@@ -7,6 +7,7 @@ import {
 } from "@/components/ui";
 import { prisma } from "@/lib/prisma";
 import type { RecipeRecord } from "@/lib/recipe-types";
+import { toRecipeRecord } from "@/lib/recipe-types";
 import { RecipeDetailClient } from "./recipe-detail-client";
 
 type DetailPageProps = {
@@ -52,15 +53,7 @@ export default async function RecipeDetailPage({ params }: DetailPageProps) {
         // 表示と編集の切り替えは client component に分けている
         <div className="space-y-4">
           <MutedText>詳細を確認して、編集または削除できます。</MutedText>
-          <RecipeDetailClient
-            recipe={{
-              id: recipe.id,
-              name: recipe.name,
-              ingredients: recipe.ingredients as RecipeRecord["ingredients"],
-              steps: recipe.steps,
-              url: recipe.url ?? "",
-            } satisfies RecipeRecord}
-          />
+          <RecipeDetailClient recipe={toRecipeRecord(recipe)} />
         </div>
       )}
     </PageShell>

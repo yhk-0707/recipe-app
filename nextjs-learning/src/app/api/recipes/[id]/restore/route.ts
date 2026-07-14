@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
+import { type ApiMessageResponse, toRecipeRecord } from "@/lib/recipe-types";
 
 // Next.js 16 系の Route Handler では params が Promise で渡されるため、先に await して取り出す
 type Params = { params: Promise<{ id: string }> };
@@ -18,7 +19,10 @@ export async function POST(_request: NextRequest, { params }: Params) {
   });
 
   if (!currentRecipe) {
-    return NextResponse.json({ message: "見つかりません。" }, { status: 404 });
+    return NextResponse.json<ApiMessageResponse>(
+      { message: "見つかりません。" },
+      { status: 404 },
+    );
   }
 
   // 削除フラグだけを外して、同じレコードを復元する
@@ -29,5 +33,5 @@ export async function POST(_request: NextRequest, { params }: Params) {
     },
   });
 
-  return NextResponse.json(recipe);
+  return NextResponse.json(toRecipeRecord(recipe));
 }

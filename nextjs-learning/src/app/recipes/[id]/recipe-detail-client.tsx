@@ -19,14 +19,14 @@ import {
   formatStepLabel,
   type RecipeFormErrors,
 } from "@/lib/recipe-form";
-import type { RecipeRecord } from "@/lib/recipe-types";
+import type { ApiMessageResponse, RecipeRecord } from "@/lib/recipe-types";
 
 // 削除後に一覧へ戻ったとき、Undo 用データを受け渡す保存先。
 const DELETED_RECIPE_KEY = "deleted-recipe";
 
 async function readResponseMessage(response: Response, fallback: string) {
   try {
-    const result = (await response.json()) as { message?: string };
+    const result = (await response.json()) as ApiMessageResponse;
     return result.message ?? fallback;
   } catch {
     return fallback;

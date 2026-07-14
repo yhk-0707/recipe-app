@@ -17,10 +17,11 @@ import {
   TextInput,
 } from "@/components/ui";
 import { buildRecipePayload, type RecipeFormErrors } from "@/lib/recipe-form";
+import type { ApiMessageResponse } from "@/lib/recipe-types";
 
 async function readResponseMessage(response: Response, fallback: string) {
   try {
-    const result = (await response.json()) as { message?: string };
+    const result = (await response.json()) as ApiMessageResponse;
     return result.message ?? fallback;
   } catch {
     return fallback;

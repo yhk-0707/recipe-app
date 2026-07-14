@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui";
-import type { RecipeRecord } from "@/lib/recipe-types";
+import type { ApiMessageResponse, RecipeRecord } from "@/lib/recipe-types";
 
 // 削除データを一覧ページへまたがって持ち運ぶためのキー。
 const DELETED_RECIPE_KEY = "deleted-recipe";
@@ -41,7 +41,7 @@ export function DeleteUndoToastClient() {
     });
 
     if (!response.ok) {
-      const result = (await response.json()) as { message?: string };
+      const result = (await response.json()) as ApiMessageResponse;
       alert(result.message ?? "元に戻せませんでした。");
       return;
     }

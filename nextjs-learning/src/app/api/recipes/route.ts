@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { validateRecipeApiPayload } from "@/lib/recipe-form";
+import { type ApiMessageResponse, toRecipeRecord } from "@/lib/recipe-types";
 import {
   findRecipesByIngredientsOrName,
   normalizeSearchInput,
@@ -18,13 +19,13 @@ export async function GET(request: NextRequest) {
 
   // 検索条件がなければ、そのまま一覧を返す
   if (!q) {
-    return NextResponse.json(recipes);
+    return NextResponse.json(recipes.map(toRecipeRecord));
   }
 
   // 入力を検索用の語に分解して、検索ロジックへ渡す
   const searchTerms = normalizeSearchInput(q);
   return NextResponse.json(
-    findRecipesByIngredientsOrName(recipes, searchTerms),
+    findRecipesByIngredientsOrName(recipes, searchTerms).map(toRecipeRecord),
   );
 }
 
@@ -35,7 +36,7 @@ export async function POST(request: NextRequest) {
   const { recipe: validatedRecipe, errors } = validateRecipeApiPayload(body);
 
   if (!validatedRecipe) {
-    return NextResponse.json(
+    return NextResponse.json<ApiMessageResponse>(
       {
         message:
           errors.name ??
@@ -58,5 +59,5 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  return NextResponse.json(recipe, { status: 201 });
+  return NextResponse.json(toRecipeRecord(recipe), { status: 201 });
 }
