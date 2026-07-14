@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { validateRecipeApiPayload } from "@/lib/recipe-form";
 
 // Next.js 16 系の Route Handler では params が Promise で渡されるため、先に await して取り出す
 type Params = { params: Promise<{ id: string }> };
@@ -26,14 +27,20 @@ export async function GET(_request: NextRequest, { params }: Params) {
 export async function PATCH(request: NextRequest, { params }: Params) {
   // 更新したい内容をリクエストボディから受け取る
   const body = await request.json();
-  const name = typeof body.name === "string" ? body.name.trim() : "";
   // GET と同様に、ここでも params を await してから id を使う
   const { id } = await params;
 
-  // 料理名が空なら更新できない
-  if (!name) {
+  const { recipe: validatedRecipe, errors } = validateRecipeApiPayload(body);
+
+  if (!validatedRecipe) {
     return NextResponse.json(
-      { message: "料理名を入力してください。" },
+      {
+        message:
+          errors.name ??
+          errors.ingredients ??
+          errors.steps ??
+          "入力が正しくありません。",
+      },
       { status: 400 },
     );
   }
@@ -57,10 +64,10 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     const recipe = await prisma.recipe.update({
       where: { id: Number(id) },
       data: {
-        name,
-        ingredients: body.ingredients ?? [],
-        steps: Array.isArray(body.steps) ? body.steps : [],
-        url: typeof body.url === "string" ? body.url : null,
+        name: validatedRecipe.name,
+        ingredients: validatedRecipe.ingredients,
+        steps: validatedRecipe.steps,
+        url: validatedRecipe.url ? validatedRecipe.url : null,
       },
     });
     return NextResponse.json(recipe);
