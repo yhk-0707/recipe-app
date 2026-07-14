@@ -11,6 +11,12 @@ import {
   TextArea,
   TextInput,
 } from "@/components/ui";
+import {
+  formatIngredientLines,
+  formatStepLabel,
+  parseIngredientLines,
+  parseStepLines,
+} from "@/lib/recipe-form";
 
 type Recipe = {
   id: number;
@@ -31,37 +37,6 @@ type DeletedRecipe = {
 // 削除後に一覧へ戻ったとき、Undo 用データを受け渡す保存先。
 const DELETED_RECIPE_KEY = "deleted-recipe";
 
-// 材料の配列を textarea に戻す。
-// 編集画面では「1行1材料」に直して入力させる。
-function formatIngredientsTextarea(ingredients: Recipe["ingredients"]) {
-  return ingredients.map((item) => `${item.name}|${item.amount}`).join("\n");
-}
-
-// textarea の各行を材料配列に戻す。
-// `name|amount` の簡易フォーマットで保存している。
-function parseIngredientsTextarea(text: string) {
-  return text
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line !== "")
-    .map((line) => {
-      const [name, amount] = line.split("|").map((part) => part.trim());
-      return {
-        name: name || "",
-        amount: amount || "",
-      };
-    });
-}
-
-// 手順も textarea では1行1手順で扱う。
-function parseStepsTextarea(text: string) {
-  return text
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line !== "")
-    .map((line) => line.replace(/^[0-9０-９]+[.)．、]\s*/, ""));
-}
-
 export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
   const router = useRouter();
   // 編集モードの有無。
@@ -69,7 +44,7 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
   // フォーム入力値は state に持つ。
   const [name, setName] = useState(recipe.name);
   const [ingredientsText, setIngredientsText] = useState(
-    formatIngredientsTextarea(recipe.ingredients),
+    formatIngredientLines(recipe.ingredients),
   );
   const [stepsText, setStepsText] = useState(recipe.steps.join("\n"));
   const [url, setUrl] = useState(recipe.url);
@@ -90,8 +65,8 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
       },
       body: JSON.stringify({
         name: name.trim(),
-        ingredients: parseIngredientsTextarea(ingredientsText),
-        steps: parseStepsTextarea(stepsText),
+        ingredients: parseIngredientLines(ingredientsText),
+        steps: parseStepLines(stepsText),
         url: url.trim(),
       }),
     });
@@ -104,7 +79,7 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
 
     const updatedRecipe = (await response.json()) as Recipe;
     setName(updatedRecipe.name);
-    setIngredientsText(formatIngredientsTextarea(updatedRecipe.ingredients));
+    setIngredientsText(formatIngredientLines(updatedRecipe.ingredients));
     setStepsText(updatedRecipe.steps.join("\n"));
     setUrl(updatedRecipe.url);
     setIsEditing(false);
@@ -114,7 +89,7 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
   function handleCancel() {
     // キャンセル時は元の recipe 情報に戻す。
     setName(recipe.name);
-    setIngredientsText(formatIngredientsTextarea(recipe.ingredients));
+    setIngredientsText(formatIngredientLines(recipe.ingredients));
     setStepsText(recipe.steps.join("\n"));
     setUrl(recipe.url);
     setIsEditing(false);
@@ -223,7 +198,7 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
             <ul className="list-none space-y-2 p-0">
               {recipe.ingredients.map((ingredient) => (
                 <li key={`${ingredient.name}-${ingredient.amount}`}>
-                  {ingredient.name} {ingredient.amount}
+                  {ingredient.name}: {ingredient.amount}
                 </li>
               ))}
             </ul>
@@ -241,7 +216,7 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
 
                 return (
                   <li key={`${step}-${occurrence}`}>
-                    {index + 1}. {step}
+                    {formatStepLabel(index)} {step}
                   </li>
                 );
               })}
