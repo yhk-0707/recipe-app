@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { RecipePreviewPanel } from "@/components/recipe-preview-panel";
 import {
   Button,
   Card,
@@ -49,6 +50,7 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
   );
   const [stepsText, setStepsText] = useState(recipe.steps.join("\n"));
   const [url, setUrl] = useState(recipe.url);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [errors, setErrors] = useState<RecipeFormErrors>({});
   const stepKeyCounts = new Map<string, number>();
 
@@ -131,7 +133,20 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
       {isEditing ? (
         <div className="space-y-4">
           {/* 編集時はフォームをそのまま表示する。 */}
-          <SectionTitle>編集する</SectionTitle>
+          <div className="space-y-1">
+            <SectionTitle>編集プレビュー</SectionTitle>
+          </div>
+
+          <RecipePreviewPanel
+            previewId="edit-recipe-preview-panel"
+            title="編集プレビュー"
+            isOpen={isPreviewOpen}
+            onToggle={() => setIsPreviewOpen((current) => !current)}
+            name={name}
+            ingredientsText={ingredientsText}
+            stepsText={stepsText}
+            recipeUrl={url}
+          />
 
           <Field htmlFor="editName" label="料理名">
             <TextInput
