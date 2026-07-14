@@ -1,7 +1,4 @@
-export type RecipeIngredient = {
-  name: string;
-  amount: string;
-};
+import type { RecipeIngredient } from "@/lib/recipe-types";
 
 export type ParsedRecipe = {
   name: string;

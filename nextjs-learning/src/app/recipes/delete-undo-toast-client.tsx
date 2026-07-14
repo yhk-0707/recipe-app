@@ -4,14 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui";
-
-type DeletedRecipe = {
-  id: number;
-  name: string;
-  ingredients: { name: string; amount: string }[];
-  steps: string[];
-  url: string;
-};
+import type { RecipeRecord } from "@/lib/recipe-types";
 
 // 削除データを一覧ページへまたがって持ち運ぶためのキー。
 const DELETED_RECIPE_KEY = "deleted-recipe";
@@ -19,7 +12,7 @@ const DELETED_RECIPE_KEY = "deleted-recipe";
 export function DeleteUndoToastClient() {
   const router = useRouter();
   // sessionStorage に保存されている削除レコードを読み込んで表示する。
-  const [deletedRecipe, setDeletedRecipe] = useState<DeletedRecipe | null>(
+  const [deletedRecipe, setDeletedRecipe] = useState<RecipeRecord | null>(
     null,
   );
 
@@ -31,7 +24,7 @@ export function DeleteUndoToastClient() {
     }
 
     try {
-      setDeletedRecipe(JSON.parse(raw) as DeletedRecipe);
+      setDeletedRecipe(JSON.parse(raw) as RecipeRecord);
     } catch {
       window.sessionStorage.removeItem(DELETED_RECIPE_KEY);
     }

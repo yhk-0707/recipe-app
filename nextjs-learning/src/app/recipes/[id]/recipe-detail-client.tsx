@@ -19,22 +19,7 @@ import {
   formatStepLabel,
   type RecipeFormErrors,
 } from "@/lib/recipe-form";
-
-type Recipe = {
-  id: number;
-  name: string;
-  ingredients: { name: string; amount: string }[];
-  steps: string[];
-  url: string;
-};
-
-type DeletedRecipe = {
-  id: number;
-  name: string;
-  ingredients: { name: string; amount: string }[];
-  steps: string[];
-  url: string;
-};
+import type { RecipeRecord } from "@/lib/recipe-types";
 
 // 削除後に一覧へ戻ったとき、Undo 用データを受け渡す保存先。
 const DELETED_RECIPE_KEY = "deleted-recipe";
@@ -48,7 +33,7 @@ async function readResponseMessage(response: Response, fallback: string) {
   }
 }
 
-export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
+export function RecipeDetailClient({ recipe }: { recipe: RecipeRecord }) {
   const router = useRouter();
   // 編集モードの有無。
   const [isEditing, setIsEditing] = useState(false);
@@ -96,7 +81,7 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
         return;
       }
 
-      const updatedRecipe = (await response.json()) as Recipe;
+      const updatedRecipe = (await response.json()) as RecipeRecord;
       setName(updatedRecipe.name);
       setIngredientsText(formatIngredientLines(updatedRecipe.ingredients));
       setStepsText(updatedRecipe.steps.join("\n"));
@@ -142,7 +127,7 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
       }
 
       // Undo 用に sessionStorage へ保存して一覧へ戻る。
-      const deletedRecipe = (await response.json()) as DeletedRecipe;
+      const deletedRecipe = (await response.json()) as RecipeRecord;
       window.sessionStorage.setItem(
         DELETED_RECIPE_KEY,
         JSON.stringify(deletedRecipe),

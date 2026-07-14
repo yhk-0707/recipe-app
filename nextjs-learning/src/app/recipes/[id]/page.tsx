@@ -6,6 +6,7 @@ import {
   PageTitle,
 } from "@/components/ui";
 import { prisma } from "@/lib/prisma";
+import type { RecipeRecord } from "@/lib/recipe-types";
 import { RecipeDetailClient } from "./recipe-detail-client";
 
 type DetailPageProps = {
@@ -55,13 +56,10 @@ export default async function RecipeDetailPage({ params }: DetailPageProps) {
             recipe={{
               id: recipe.id,
               name: recipe.name,
-              ingredients: recipe.ingredients as {
-                name: string;
-                amount: string;
-              }[],
+              ingredients: recipe.ingredients as RecipeRecord["ingredients"],
               steps: recipe.steps,
               url: recipe.url ?? "",
-            }}
+            } satisfies RecipeRecord}
           />
         </div>
       )}
