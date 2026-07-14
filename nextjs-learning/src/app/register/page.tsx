@@ -14,90 +14,27 @@ import {
   TextArea,
   TextInput,
 } from "@/components/ui";
-
-type ParsedRecipe = {
-  name: string;
-  ingredients: { name: string; amount: string }[];
-  steps: string[];
-  url: string;
-};
-
-function parseIngredientLines(text: string) {
-  const ingredients = text
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => {
-      const [name = "", amount = ""] = line.split(/[:：]/);
-
-      return {
-        name: name.trim(),
-        amount: amount.trim(),
-      };
-    });
-
-  if (
-    ingredients.some((ingredient) => !ingredient.name || !ingredient.amount)
-  ) {
-    return null;
-  }
-
-  return ingredients;
-}
-
-function parseStepLines(text: string) {
-  return text
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => line.replace(/^[0-9０-９]+[.)．、]\s*/, ""));
-}
-
-function buildRecipePayload(
-  name: string,
-  ingredientsText: string,
-  stepsText: string,
-  recipeUrl: string,
-): ParsedRecipe | null {
-  const trimmedName = name.trim();
-  const ingredients = parseIngredientLines(ingredientsText);
-  const steps = parseStepLines(stepsText);
-
-  if (
-    !trimmedName ||
-    !ingredients ||
-    ingredients.length === 0 ||
-    steps.length === 0
-  ) {
-    return null;
-  }
-
-  return {
-    name: trimmedName,
-    ingredients,
-    steps,
-    url: recipeUrl.trim(),
-  };
-}
+import { buildRecipePayload, type RecipeFormErrors } from "@/lib/recipe-form";
 
 export default function RegisterPage() {
   const [recipeName, setRecipeName] = useState("");
   const [ingredientsText, setIngredientsText] = useState("");
   const [stepsText, setStepsText] = useState("");
   const [recipeUrl, setRecipeUrl] = useState("");
+  const [errors, setErrors] = useState<RecipeFormErrors>({});
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const parsedRecipe = buildRecipePayload(
+    const { recipe, errors: nextErrors } = buildRecipePayload(
       recipeName,
       ingredientsText,
       stepsText,
       recipeUrl,
     );
 
-    if (!parsedRecipe) {
-      alert("料理名、材料、手順はすべて入力してください。");
+    if (!recipe) {
+      setErrors(nextErrors);
       return;
     }
 
@@ -106,7 +43,7 @@ export default function RegisterPage() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(parsedRecipe),
+      body: JSON.stringify(recipe),
     });
 
     if (!response.ok) {
