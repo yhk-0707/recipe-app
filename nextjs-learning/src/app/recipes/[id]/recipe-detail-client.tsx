@@ -39,6 +39,15 @@ type DeletedRecipe = {
 // 削除後に一覧へ戻ったとき、Undo 用データを受け渡す保存先。
 const DELETED_RECIPE_KEY = "deleted-recipe";
 
+async function readResponseMessage(response: Response, fallback: string) {
+  try {
+    const result = (await response.json()) as { message?: string };
+    return result.message ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
   const router = useRouter();
   // 編集モードの有無。
@@ -67,29 +76,37 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
       return;
     }
 
-    // 編集後の内容を API に送る。
-    const response = await fetch(`/api/recipes/${recipe.id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(nextRecipe),
-    });
+    try {
+      // 編集後の内容を API に送る。
+      const response = await fetch(`/api/recipes/${recipe.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(nextRecipe),
+      });
 
-    if (!response.ok) {
-      const result = (await response.json()) as { message?: string };
-      alert(result.message ?? "レシピを更新できませんでした。");
-      return;
+      if (!response.ok) {
+        alert(
+          await readResponseMessage(
+            response,
+            "レシピを更新できませんでした。",
+          ),
+        );
+        return;
+      }
+
+      const updatedRecipe = (await response.json()) as Recipe;
+      setName(updatedRecipe.name);
+      setIngredientsText(formatIngredientLines(updatedRecipe.ingredients));
+      setStepsText(updatedRecipe.steps.join("\n"));
+      setUrl(updatedRecipe.url);
+      setErrors({});
+      setIsEditing(false);
+      alert("レシピを更新しました");
+    } catch {
+      alert("通信に失敗しました。");
     }
-
-    const updatedRecipe = (await response.json()) as Recipe;
-    setName(updatedRecipe.name);
-    setIngredientsText(formatIngredientLines(updatedRecipe.ingredients));
-    setStepsText(updatedRecipe.steps.join("\n"));
-    setUrl(updatedRecipe.url);
-    setErrors({});
-    setIsEditing(false);
-    alert("レシピを更新しました");
   }
 
   function handleCancel() {
@@ -109,23 +126,31 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
       return;
     }
 
-    const response = await fetch(`/api/recipes/${recipe.id}`, {
-      method: "DELETE",
-    });
+    try {
+      const response = await fetch(`/api/recipes/${recipe.id}`, {
+        method: "DELETE",
+      });
 
-    if (!response.ok) {
-      const result = (await response.json()) as { message?: string };
-      alert(result.message ?? "レシピを削除できませんでした。");
-      return;
+      if (!response.ok) {
+        alert(
+          await readResponseMessage(
+            response,
+            "レシピを削除できませんでした。",
+          ),
+        );
+        return;
+      }
+
+      // Undo 用に sessionStorage へ保存して一覧へ戻る。
+      const deletedRecipe = (await response.json()) as DeletedRecipe;
+      window.sessionStorage.setItem(
+        DELETED_RECIPE_KEY,
+        JSON.stringify(deletedRecipe),
+      );
+      router.push("/recipes");
+    } catch {
+      alert("通信に失敗しました。");
     }
-
-    // Undo 用に sessionStorage へ保存して一覧へ戻る。
-    const deletedRecipe = (await response.json()) as DeletedRecipe;
-    window.sessionStorage.setItem(
-      DELETED_RECIPE_KEY,
-      JSON.stringify(deletedRecipe),
-    );
-    router.push("/recipes");
   }
 
   return (

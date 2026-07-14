@@ -18,6 +18,15 @@ import {
 } from "@/components/ui";
 import { buildRecipePayload, type RecipeFormErrors } from "@/lib/recipe-form";
 
+async function readResponseMessage(response: Response, fallback: string) {
+  try {
+    const result = (await response.json()) as { message?: string };
+    return result.message ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 export default function RegisterPage() {
   const [recipeName, setRecipeName] = useState("");
   const [ingredientsText, setIngredientsText] = useState("");
@@ -41,26 +50,34 @@ export default function RegisterPage() {
       return;
     }
 
-    const response = await fetch("/api/recipes", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(recipe),
-    });
+    try {
+      const response = await fetch("/api/recipes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(recipe),
+      });
 
-    if (!response.ok) {
-      const result = (await response.json()) as { message?: string };
-      alert(result.message ?? "レシピを追加できませんでした。");
-      return;
+      if (!response.ok) {
+        alert(
+          await readResponseMessage(
+            response,
+            "レシピを追加できませんでした。",
+          ),
+        );
+        return;
+      }
+
+      alert("レシピを追加しました");
+      setErrors({});
+      setRecipeName("");
+      setIngredientsText("");
+      setStepsText("");
+      setRecipeUrl("");
+    } catch {
+      alert("通信に失敗しました。");
     }
-
-    alert("レシピを追加しました");
-    setErrors({});
-    setRecipeName("");
-    setIngredientsText("");
-    setStepsText("");
-    setRecipeUrl("");
   }
 
   function handleClear() {
