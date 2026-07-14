@@ -6,6 +6,7 @@ import { useState } from "react";
 import {
   Button,
   Card,
+  ErrorText,
   Field,
   LinkButton,
   MutedText,
@@ -61,6 +62,7 @@ export default function RegisterPage() {
   }
 
   function handleClear() {
+    setErrors({});
     setRecipeName("");
     setIngredientsText("");
     setStepsText("");
@@ -88,7 +90,7 @@ export default function RegisterPage() {
 
       {/* 旧React版の register.js のフォーム領域に相当する */}
       <Card>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form noValidate onSubmit={handleSubmit} className="space-y-4">
           <Field
             htmlFor="recipeName"
             label="料理名"
@@ -96,6 +98,7 @@ export default function RegisterPage() {
           >
             <TextInput
               id="recipeName"
+              aria-invalid={Boolean(errors.name)}
               value={recipeName}
               onChange={(event) => {
                 setRecipeName(event.target.value);
@@ -104,11 +107,8 @@ export default function RegisterPage() {
                 }
               }}
               placeholder="カレー"
-              required
             />
-            {errors.name ? (
-              <p className="text-sm text-[#c23934]">{errors.name}</p>
-            ) : null}
+            {errors.name ? <ErrorText>{errors.name}</ErrorText> : null}
           </Field>
 
           <Field
@@ -118,6 +118,7 @@ export default function RegisterPage() {
           >
             <TextArea
               id="ingredientsText"
+              aria-invalid={Boolean(errors.ingredients)}
               value={ingredientsText}
               onChange={(event) => {
                 setIngredientsText(event.target.value);
@@ -132,10 +133,9 @@ export default function RegisterPage() {
               placeholder={`玉ねぎ: 1個
 にんじん：1本
 豚肉: 200g`}
-              required
             />
             {errors.ingredients ? (
-              <p className="text-sm text-[#c23934]">{errors.ingredients}</p>
+              <ErrorText>{errors.ingredients}</ErrorText>
             ) : null}
           </Field>
 
@@ -146,6 +146,7 @@ export default function RegisterPage() {
           >
             <TextArea
               id="stepsText"
+              aria-invalid={Boolean(errors.steps)}
               value={stepsText}
               onChange={(event) => {
                 setStepsText(event.target.value);
@@ -157,11 +158,8 @@ export default function RegisterPage() {
               placeholder={`1. 切る
 2) 炒める
 3．煮込む`}
-              required
             />
-            {errors.steps ? (
-              <p className="text-sm text-[#c23934]">{errors.steps}</p>
-            ) : null}
+            {errors.steps ? <ErrorText>{errors.steps}</ErrorText> : null}
           </Field>
 
           <Field
