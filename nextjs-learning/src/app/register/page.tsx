@@ -53,6 +53,7 @@ export default function RegisterPage() {
     }
 
     alert("レシピを追加しました");
+    setErrors({});
     setRecipeName("");
     setIngredientsText("");
     setStepsText("");
@@ -96,10 +97,18 @@ export default function RegisterPage() {
             <TextInput
               id="recipeName"
               value={recipeName}
-              onChange={(event) => setRecipeName(event.target.value)}
+              onChange={(event) => {
+                setRecipeName(event.target.value);
+                if (errors.name) {
+                  setErrors((current) => ({ ...current, name: undefined }));
+                }
+              }}
               placeholder="カレー"
               required
             />
+            {errors.name ? (
+              <p className="text-sm text-[#c23934]">{errors.name}</p>
+            ) : null}
           </Field>
 
           <Field
@@ -110,13 +119,24 @@ export default function RegisterPage() {
             <TextArea
               id="ingredientsText"
               value={ingredientsText}
-              onChange={(event) => setIngredientsText(event.target.value)}
+              onChange={(event) => {
+                setIngredientsText(event.target.value);
+                if (errors.ingredients) {
+                  setErrors((current) => ({
+                    ...current,
+                    ingredients: undefined,
+                  }));
+                }
+              }}
               rows={8}
               placeholder={`玉ねぎ: 1個
 にんじん：1本
 豚肉: 200g`}
               required
             />
+            {errors.ingredients ? (
+              <p className="text-sm text-[#c23934]">{errors.ingredients}</p>
+            ) : null}
           </Field>
 
           <Field
@@ -127,13 +147,21 @@ export default function RegisterPage() {
             <TextArea
               id="stepsText"
               value={stepsText}
-              onChange={(event) => setStepsText(event.target.value)}
+              onChange={(event) => {
+                setStepsText(event.target.value);
+                if (errors.steps) {
+                  setErrors((current) => ({ ...current, steps: undefined }));
+                }
+              }}
               rows={8}
               placeholder={`1. 切る
 2) 炒める
 3．煮込む`}
               required
             />
+            {errors.steps ? (
+              <p className="text-sm text-[#c23934]">{errors.steps}</p>
+            ) : null}
           </Field>
 
           <Field
