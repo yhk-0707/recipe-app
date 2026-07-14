@@ -12,10 +12,16 @@ import {
   MutedText,
   PageShell,
   PageTitle,
+  SectionTitle,
   TextArea,
   TextInput,
 } from "@/components/ui";
-import { buildRecipePayload, type RecipeFormErrors } from "@/lib/recipe-form";
+import {
+  buildRecipePayload,
+  buildRecipePreview,
+  formatStepLabel,
+  type RecipeFormErrors,
+} from "@/lib/recipe-form";
 
 export default function RegisterPage() {
   const [recipeName, setRecipeName] = useState("");
@@ -23,6 +29,13 @@ export default function RegisterPage() {
   const [stepsText, setStepsText] = useState("");
   const [recipeUrl, setRecipeUrl] = useState("");
   const [errors, setErrors] = useState<RecipeFormErrors>({});
+  const previewStepKeyCounts = new Map<string, number>();
+  const previewRecipe = buildRecipePreview(
+    recipeName,
+    ingredientsText,
+    stepsText,
+    recipeUrl,
+  );
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -85,6 +98,69 @@ export default function RegisterPage() {
           <LinkButton href="/" variant="secondary">
             トップへ戻る
           </LinkButton>
+        </div>
+      </Card>
+
+      <Card className="space-y-4">
+        <SectionTitle>登録プレビュー</SectionTitle>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <p className="text-sm text-muted">料理名</p>
+            <p className="text-foreground">{previewRecipe.name || "未入力"}</p>
+          </div>
+
+          <section className="space-y-2">
+            <p className="text-sm text-muted">材料</p>
+            {previewRecipe.ingredients.length > 0 ? (
+              <ul className="list-none space-y-1 p-0">
+                {previewRecipe.ingredients.map((ingredient) => (
+                  <li key={`${ingredient.name}-${ingredient.amount}`}>
+                    {ingredient.amount
+                      ? `${ingredient.name}: ${ingredient.amount}`
+                      : ingredient.name}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <MutedText>まだ材料がありません。</MutedText>
+            )}
+          </section>
+
+          <section className="space-y-2">
+            <p className="text-sm text-muted">手順</p>
+            {previewRecipe.steps.length > 0 ? (
+              <ol className="list-none space-y-1 p-0">
+                {previewRecipe.steps.map((step, index) => {
+                  const occurrence = (previewStepKeyCounts.get(step) ?? 0) + 1;
+                  previewStepKeyCounts.set(step, occurrence);
+
+                  return (
+                    <li key={`${step}-${occurrence}`}>
+                      {formatStepLabel(index)} {step}
+                    </li>
+                  );
+                })}
+              </ol>
+            ) : (
+              <MutedText>まだ手順がありません。</MutedText>
+            )}
+          </section>
+
+          <div className="space-y-2">
+            <p className="text-sm text-muted">参考URL</p>
+            {previewRecipe.url ? (
+              <a
+                href={previewRecipe.url}
+                target="_blank"
+                rel="noreferrer"
+                className="break-all text-foreground hover:text-accent"
+              >
+                {previewRecipe.url}
+              </a>
+            ) : (
+              <MutedText>未入力</MutedText>
+            )}
+          </div>
         </div>
       </Card>
 

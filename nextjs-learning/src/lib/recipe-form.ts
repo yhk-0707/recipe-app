@@ -16,6 +16,35 @@ export type RecipeFormErrors = {
   steps?: string;
 };
 
+// プレビュー用に、入力途中でも見せられる形へ緩く整える。
+// 保存判定とは分けて、未入力や途中入力でも表示できるようにする。
+export function buildRecipePreview(
+  name: string,
+  ingredientsText: string,
+  stepsText: string,
+  recipeUrl: string,
+): ParsedRecipe {
+  const ingredients = ingredientsText
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const [name = "", ...rest] = line.split(/[:：]/);
+
+      return {
+        name: name.trim() || line,
+        amount: rest.join(":").trim(),
+      };
+    });
+
+  return {
+    name: name.trim(),
+    ingredients,
+    steps: parseStepLines(stepsText),
+    url: recipeUrl.trim(),
+  };
+}
+
 // 保存済みの材料配列を、編集用 textarea の1行ずつの表記に戻す。
 // 入力ルールは登録画面と揃えて、`材料名: 分量` に統一する。
 export function formatIngredientLines(ingredients: RecipeIngredient[]) {
