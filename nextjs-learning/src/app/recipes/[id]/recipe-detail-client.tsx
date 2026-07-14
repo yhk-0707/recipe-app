@@ -58,7 +58,8 @@ function parseStepsTextarea(text: string) {
   return text
     .split("\n")
     .map((line) => line.trim())
-    .filter((line) => line !== "");
+    .filter((line) => line !== "")
+    .map((line) => line.replace(/^[0-9０-９]+[.)．、]\s*/, ""));
 }
 
 export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
@@ -201,14 +202,17 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
           <div className="space-y-3">
             <SectionTitle>{name}</SectionTitle>
             {url ? (
-              <a
-                href={url}
-                target="_blank"
-                rel="noreferrer"
-                className="break-all text-foreground hover:text-accent"
-              >
-                {url}
-              </a>
+              <div className="space-y-1">
+                <p className="text-sm text-muted">参考URL</p>
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="break-all text-foreground hover:text-accent"
+                >
+                  {url}
+                </a>
+              </div>
             ) : null}
           </div>
 
@@ -228,8 +232,10 @@ export function RecipeDetailClient({ recipe }: { recipe: Recipe }) {
             {/* 手順も配列で順番に表示する。 */}
             <SectionTitle>手順</SectionTitle>
             <ol className="list-none space-y-2 p-0">
-              {recipe.steps.map((step) => (
-                <li key={step}>{step}</li>
+              {recipe.steps.map((step, index) => (
+                <li key={`${index}-${step}`}>
+                  {index + 1}. {step}
+                </li>
               ))}
             </ol>
           </section>

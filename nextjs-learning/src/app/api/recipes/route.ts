@@ -31,6 +31,9 @@ export async function POST(request: NextRequest) {
   // リクエストボディから新規レシピの入力値を受け取る
   const body = await request.json();
   const name = typeof body.name === "string" ? body.name.trim() : "";
+  const ingredients = Array.isArray(body.ingredients) ? body.ingredients : [];
+  const steps = Array.isArray(body.steps) ? body.steps : [];
+  const url = typeof body.url === "string" ? body.url.trim() : "";
 
   // 料理名は必須にする
   if (!name) {
@@ -40,13 +43,29 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // 材料は1件以上必要にする
+  if (ingredients.length === 0) {
+    return NextResponse.json(
+      { message: "材料を入力してください。" },
+      { status: 400 },
+    );
+  }
+
+  // 手順も1件以上必要にする
+  if (steps.length === 0) {
+    return NextResponse.json(
+      { message: "手順を入力してください。" },
+      { status: 400 },
+    );
+  }
+
   // 入力値をそのまま保存用データに整形して登録する
   const recipe = await prisma.recipe.create({
     data: {
       name,
-      ingredients: body.ingredients ?? [],
-      steps: Array.isArray(body.steps) ? body.steps : [],
-      url: typeof body.url === "string" ? body.url : null,
+      ingredients,
+      steps,
+      url: url ? url : null,
       deletedAt: null,
     },
   });

@@ -22,95 +22,83 @@ type ParsedRecipe = {
   url: string;
 };
 
-function parseFormattedRecipe(text: string): ParsedRecipe {
-  const lines = text.split("\n");
-  let recipeName = "";
-  const ingredients: { name: string; amount: string }[] = [];
-  const steps: string[] = [];
-  let recipeUrl = "";
-  let mode = "";
+function parseIngredientLines(text: string) {
+  const ingredients = text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const [name = "", amount = ""] = line.split(/[:：]/);
 
-  lines.forEach((line) => {
-    const trimmed = line.trim();
+      return {
+        name: name.trim(),
+        amount: amount.trim(),
+      };
+    });
 
-    if (trimmed.startsWith("料理名")) {
-      mode = "title";
-      return;
-    }
+  if (
+    ingredients.some((ingredient) => !ingredient.name || !ingredient.amount)
+  ) {
+    return null;
+  }
 
-    if (mode === "title" && trimmed !== "") {
-      recipeName = trimmed;
-      mode = "";
-      return;
-    }
+  return ingredients;
+}
 
-    if (trimmed.startsWith("材料")) {
-      mode = "ingredients";
-      return;
-    }
+function parseStepLines(text: string) {
+  return text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => line.replace(/^[0-9０-９]+[.)．、]\s*/, ""));
+}
 
-    if (trimmed.startsWith("手順")) {
-      mode = "steps";
-      return;
-    }
+function buildRecipePayload(
+  name: string,
+  ingredientsText: string,
+  stepsText: string,
+  recipeUrl: string,
+): ParsedRecipe | null {
+  const trimmedName = name.trim();
+  const ingredients = parseIngredientLines(ingredientsText);
+  const steps = parseStepLines(stepsText);
 
-    if (trimmed.startsWith("参考URL")) {
-      const value = trimmed.replace(/.*参考URL[:：]?\s*/, "").trim();
-      if (value) {
-        recipeUrl = value;
-      } else {
-        mode = "url";
-      }
-      return;
-    }
-
-    if (mode === "url" && trimmed !== "") {
-      recipeUrl = trimmed;
-      mode = "";
-      return;
-    }
-
-    if (mode === "ingredients" && trimmed.startsWith("-")) {
-      const item = trimmed.replace(/^-/, "").trim();
-      const parts = item.split("|");
-      ingredients.push({
-        name: parts[0]?.trim() || "",
-        amount: parts[1]?.trim() || "",
-      });
-      return;
-    }
-
-    if (mode === "steps" && trimmed !== "") {
-      steps.push(trimmed.replace(/^\d+\./, "").trim());
-    }
-  });
+  if (
+    !trimmedName ||
+    !ingredients ||
+    ingredients.length === 0 ||
+    steps.length === 0
+  ) {
+    return null;
+  }
 
   return {
-    name: recipeName,
+    name: trimmedName,
     ingredients,
     steps,
-    url: recipeUrl,
+    url: recipeUrl.trim(),
   };
 }
 
 export default function RegisterPage() {
-  const [recipeText, setRecipeText] = useState("");
+  const [recipeName, setRecipeName] = useState("");
+  const [ingredientsText, setIngredientsText] = useState("");
+  const [stepsText, setStepsText] = useState("");
   const [recipeUrl, setRecipeUrl] = useState("");
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const parsedRecipe = parseFormattedRecipe(recipeText);
+    const parsedRecipe = buildRecipePayload(
+      recipeName,
+      ingredientsText,
+      stepsText,
+      recipeUrl,
+    );
 
-    if (!parsedRecipe.name) {
-      alert(
-        "料理名の形式が正しくありません。\n「料理名」の行の次にタイトルを入力してください。",
-      );
+    if (!parsedRecipe) {
+      alert("料理名、材料、手順はすべて入力してください。");
       return;
-    }
-
-    if (recipeUrl.trim()) {
-      parsedRecipe.url = recipeUrl.trim();
     }
 
     const response = await fetch("/api/recipes", {
@@ -128,12 +116,16 @@ export default function RegisterPage() {
     }
 
     alert("レシピを追加しました");
-    setRecipeText("");
+    setRecipeName("");
+    setIngredientsText("");
+    setStepsText("");
     setRecipeUrl("");
   }
 
   function handleClear() {
-    setRecipeText("");
+    setRecipeName("");
+    setIngredientsText("");
+    setStepsText("");
     setRecipeUrl("");
   }
 
@@ -142,7 +134,7 @@ export default function RegisterPage() {
       {/* 旧React版の register.html / register.js に相当する登録ページ */}
       <Card className="space-y-4">
         <PageTitle>レシピ登録</PageTitle>
-        <MutedText>整形済みレシピを貼り付けて登録する画面です。</MutedText>
+        <MutedText>料理名・材料・手順・参考URLを登録する画面です。</MutedText>
 
         <div className="flex flex-wrap gap-2">
           {/* 旧React版の recipes.html へ戻るリンクに相当する */}
@@ -159,38 +151,58 @@ export default function RegisterPage() {
       {/* 旧React版の register.js のフォーム領域に相当する */}
       <Card>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* 旧React版の recipeText に相当する入力欄 */}
           <Field
-            htmlFor="recipeText"
-            label="レシピ本文"
-            hint="料理名 / 材料 / 手順 / 参考URL の順で貼り付けてください。"
+            htmlFor="recipeName"
+            label="料理名"
+            hint="料理の名前を1行で入力してください。"
           >
-            <TextArea
-              id="recipeText"
-              value={recipeText}
-              onChange={(event) => setRecipeText(event.target.value)}
-              rows={12}
-              placeholder={`料理名
-カレー
-
-材料
-- 玉ねぎ | 1個
-- にんじん | 1本
-
-手順
-1. 切る
-2. 炒める
-
-参考URL
-https://example.com`}
+            <TextInput
+              id="recipeName"
+              value={recipeName}
+              onChange={(event) => setRecipeName(event.target.value)}
+              placeholder="カレー"
+              required
             />
           </Field>
 
-          {/* 旧React版の recipeUrl に相当する入力欄 */}
+          <Field
+            htmlFor="ingredientsText"
+            label="材料"
+            hint="1行につき1件。`材料名: 分量` か `材料名：分量` の形で入力してください。"
+          >
+            <TextArea
+              id="ingredientsText"
+              value={ingredientsText}
+              onChange={(event) => setIngredientsText(event.target.value)}
+              rows={8}
+              placeholder={`玉ねぎ: 1個
+にんじん：1本
+豚肉: 200g`}
+              required
+            />
+          </Field>
+
+          <Field
+            htmlFor="stepsText"
+            label="手順"
+            hint="1行につき1手順。番号は任意で、`1.` / `１.` / `1)` / `１)` のように区切り記号つきで入力できます。"
+          >
+            <TextArea
+              id="stepsText"
+              value={stepsText}
+              onChange={(event) => setStepsText(event.target.value)}
+              rows={8}
+              placeholder={`1. 切る
+2) 炒める
+3．煮込む`}
+              required
+            />
+          </Field>
+
           <Field
             htmlFor="recipeUrl"
             label="参考URL"
-            hint="本文のURLを上書きしたいときだけ入力。"
+            hint="空欄で問題ありません。必要なときだけ入力してください。"
           >
             <TextInput
               id="recipeUrl"
@@ -202,9 +214,7 @@ https://example.com`}
           </Field>
 
           <div className="flex flex-wrap gap-2">
-            {/* 旧React版の addFormattedButton に相当する登録ボタン */}
             <Button type="submit">登録する</Button>
-            {/* 旧React版の clearFormButton に相当するクリアボタン */}
             <Button type="button" variant="secondary" onClick={handleClear}>
               クリア
             </Button>
