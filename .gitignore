@@ -38,3 +38,5 @@ coverage/
 
 # Sample files
 sample.jsx
+backup.sql
+.codex/AGENTS.md

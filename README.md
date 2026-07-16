@@ -1,6 +1,6 @@
 # recipe-app
 
-このプロジェクトは、HTML/CSS/JavaScriptのレシピメモ用アプリを元に、React学習を進めるための構成です。
+このプロジェクトは、HTML/CSS/JavaScriptのレシピメモ用アプリを元に、Reactから発展してNext.js学習を進めるための構成です。
 
 ## ディレクトリ構成
 

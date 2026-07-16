@@ -8,6 +8,8 @@
 
 起動すると、初期データとして `src/data/defaultRecipes.js` のレシピが表示されます。以後の変更内容はブラウザの `localStorage` に保存されます。
 
+`src/App.jsx` が画面全体の状態管理を担当し、検索・登録・一覧表示・編集・削除の流れを子コンポーネントに分けて組み立てています。
+
 ## できること
 
 - 料理名や材料でレシピを検索する
@@ -23,6 +25,14 @@
 - `検索・一覧`
 - `レシピ登録`
 - `登録済み一覧`
+
+## 検索仕様
+
+検索ボックスにキーワードを入力すると、レシピ名と材料名を対象に部分一致で探します。
+
+- 検索語はスペース区切りで複数入力できます
+- 入力した検索語は、すべて満たすレシピだけを表示します
+- 例: `カレー 玉ねぎ` なら、料理名または材料名に両方が含まれるレシピが対象です
 
 ## 登録フォーマット
 
@@ -50,6 +60,7 @@ https://example.com
 
 - `src/App.jsx`: 画面全体の状態管理、検索、登録、編集、削除
 - `src/components/SearchBox.jsx`: 検索入力欄
+- `src/components/AddRecipeForm.jsx`: シンプルなレシピ追加フォーム
 - `src/components/RegisterRecipeForm.jsx`: レシピ登録フォーム
 - `src/components/RecipeList.jsx`: 登録済みレシピ一覧
 - `src/components/RecipeCard.jsx`: 各レシピの表示・編集UI
@@ -57,6 +68,7 @@ https://example.com
 - `src/main.jsx`: React のエントリーポイント
 - `src/App.css`: 画面全体のスタイル
 - `index.html`: Vite の起動用 HTML
+- `vite.config.js`: Vite の設定と GitHub Pages 用の `base`
 
 ## 起動方法
 
@@ -92,3 +104,5 @@ https://example.com
 - `defaultRecipes` を初期データとして使用
 - 検索はレシピ名と材料名を対象に部分一致で判定
 - `SearchBox`、`RegisterRecipeForm`、`RecipeList`、`RecipeCard` に分割して UI を整理
+- `useState` と `useEffect` の役割分担を確認する学習素材として使える
+- `vite.config.js` の `base: '/recipe-app/'` は GitHub Pages 配置を意識した設定
