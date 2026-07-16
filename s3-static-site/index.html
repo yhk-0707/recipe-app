@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>献立アプリ</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>献立検索アプリ</h1>
+    </header>
+
+    <main>
+      <section>
+        <h2>レシピ検索</h2>
+        <div class="search-area">
+          <label for="ingredientInput" class="visually-hidden">検索する材料または料理名を入力</label>
+          <input type="text" id="ingredientInput" placeholder="材料または料理名をスペース区切りで入力" aria-describedby="searchHint">
+          <button id="searchButton" type="button">検索</button>
+        </div>
+        <p id="searchHint" class="small-muted">材料名か料理名、どちらでも検索できます。スペース区切りで複数語を入力してください。</p>
+        <div id="result" style="margin-top:12px;" aria-live="polite"></div>
+      </section>
+
+      <p style="margin:24px 0; text-align:left;"><a class="button-link secondary" href="recipes.html">登録済みレシピ一覧を見る</a>
+      </p>
+      <p style="margin:0 0 24px 0; text-align:left;"><a class="button-link secondary" href="register.html">レシピ登録ページへ</a>
+      </p>
+      <hr style="margin:24px 0; border:none; border-top:1px dashed #eef2f7;">
+    </main>
+
+    <script type="module" src="src/app.js"></script>
+  </div>
+</body>
+
+</html>

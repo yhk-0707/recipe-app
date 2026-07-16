@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>レシピ登録</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>レシピ登録</h1>
+    </header>
+    <main>
+      <section>
+        <label for="recipeText" class="small-muted">整形済みレシピを貼り付け</label>
+        <textarea id="recipeText" rows="12" placeholder="整形済みレシピを貼り付け"></textarea>
+
+        <label for="recipeUrl" class="small-muted">参考URL</label>
+        <input type="url" id="recipeUrl" placeholder="https://example.com">
+
+        <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+          <button id="addFormattedButton" type="button">レシピ追加</button>
+          <button class="secondary" id="clearFormButton" type="button">クリア</button>
+        </div>
+      </section>
+
+      <p style="margin-top:18px;"><a class="button-link secondary" href="index.html">トップに戻る</a></p>
+    </main>
+  </div>
+  <script type="module" src="src/register.js"></script>
+</body>
+</html>
